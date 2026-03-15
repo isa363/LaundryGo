@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
 
+// comment 2: bonjour2
 public class LoginActivity extends AppCompatActivity {
     private EditText emailEditText, passwordEditText;
     private TextView toRedirect;
