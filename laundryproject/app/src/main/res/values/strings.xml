@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">laundryproject</string>
+    <string-array name="account_types">
+        <item>Regular</item>
+        <item>Admin</item>
+    </string-array>
+</resources>
