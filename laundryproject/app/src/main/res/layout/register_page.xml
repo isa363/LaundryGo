@@ -65,15 +65,15 @@
             </RadioGroup>
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/register_usernameInputLayout"
+                android:id="@+id/register_emailInputLayout"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:hint="Username">
+                android:hint="Email">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/register_usernameEditText"
+                    android:id="@+id/register_emailEditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textEmailAddress" />
@@ -85,7 +85,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:hint="Apartment Number (optional)">
+                android:hint="Apartment Number">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/register_aptNumberEditText"
