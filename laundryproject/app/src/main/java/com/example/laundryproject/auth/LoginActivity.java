@@ -21,7 +21,7 @@ import com.google.firebase.auth.FirebaseUser;
 public class LoginActivity extends AppCompatActivity {
 
     private EditText emailEditText, passwordEditText;
-    private TextView toRedirect, forgotPasswordText;
+    private TextView toRedirect, forgotPasswordTextEdit;
     private Button loginButton;
     private AuthManager authManager;
 
@@ -36,7 +36,7 @@ public class LoginActivity extends AppCompatActivity {
         passwordEditText = findViewById(R.id.login_passwordEditText);
         loginButton = findViewById(R.id.login_loginButton);
         toRedirect = findViewById(R.id.RegisterRedirectText);
-        forgotPasswordText = findViewById(R.id.forgotPasswordText);
+        forgotPasswordTextEdit = findViewById(R.id.forgotPasswordTextEdit);
 
         toRedirect.setOnClickListener(v -> {
             startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
@@ -45,7 +45,7 @@ public class LoginActivity extends AppCompatActivity {
 
         loginButton.setOnClickListener(v -> attemptLogin());
 
-        forgotPasswordText.setOnClickListener(v -> {
+        forgotPasswordTextEdit.setOnClickListener(v -> {
             startActivity(new Intent(LoginActivity.this, ForgotPasswordActivity.class));
         });
     }
