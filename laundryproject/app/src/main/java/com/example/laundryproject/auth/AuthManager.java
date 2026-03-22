@@ -5,8 +5,9 @@ import androidx.annotation.NonNull;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-// This class allows us to call back functions from the FirebaseAuth class that handle loginUser,registerUser.
-// This class can also be used to find current user and also log out. Separating Firebase commands with the rest of the code.
+// This class allows us to call back functions from the FirebaseAuth class that handle loginUser, registerUser,
+// sendPasswordResetEmail. This class can also be used to find current user and also log out.
+// Separating Firebase commands with the rest of the code.
 public class AuthManager {
 
     private final FirebaseAuth mAuth;
@@ -17,6 +18,11 @@ public class AuthManager {
 
     public interface AuthCallback {
         void onSuccess(FirebaseUser user);
+        void onFailure(String errorMessage);
+    }
+
+    public interface SimpleCallback {
+        void onSuccess(String message);
         void onFailure(String errorMessage);
     }
 
@@ -42,6 +48,21 @@ public class AuthManager {
                         callback.onSuccess(mAuth.getCurrentUser());
                     } else {
                         String message = "Registration failed";
+                        if (task.getException() != null) {
+                            message = task.getException().getMessage();
+                        }
+                        callback.onFailure(message);
+                    }
+                });
+    }
+
+    public void sendPasswordResetEmail(String email, @NonNull SimpleCallback callback) {
+        mAuth.sendPasswordResetEmail(email)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        callback.onSuccess("Password reset email sent. Please check your inbox.");
+                    } else {
+                        String message = "Could not send password reset email";
                         if (task.getException() != null) {
                             message = task.getException().getMessage();
                         }

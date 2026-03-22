@@ -1,7 +1,7 @@
 package com.example.laundryproject.model;
 
 
-// helper class that allows us to send a object to firebase databse, if we ever want to save more stuff we can add it to this class and when instantiating we pass it the value
+// helper class that allows us to send a object to firebase database, if we ever want to save more stuff we can add it to this class and when instantiating we pass it the value
 // Every variable in this class gets saved to the database
 public class User {
     public String email;

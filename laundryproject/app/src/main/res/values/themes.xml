@@ -3,6 +3,12 @@
     <style name="Base.Theme.Laundryproject" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="colorPrimary">#1a56a0</item>
+        <item name="colorPrimaryVariant">#1a56a0</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorSurfaceVariant">#F0F4F8</item>
+
+
     </style>
 
     <style name="Theme.Laundryproject" parent="Base.Theme.Laundryproject" />
