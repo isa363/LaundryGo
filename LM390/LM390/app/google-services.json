@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "797179958158",
+    "project_id": "lm390-cd42d",
+    "storage_bucket": "lm390-cd42d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:797179958158:android:fe91a9f457d1c997234adf",
+        "android_client_info": {
+          "package_name": "com.example.lm390"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDAJa2gLRCbZ_Zdc6TntWrq612bI39snX4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
