@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="gcm_defaultSenderId" translatable="false">797179958158</string>
+    <string name="google_api_key" translatable="false">AIzaSyDAJa2gLRCbZ_Zdc6TntWrq612bI39snX4</string>
+    <string name="google_app_id" translatable="false">1:797179958158:android:fe91a9f457d1c997234adf</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyDAJa2gLRCbZ_Zdc6TntWrq612bI39snX4</string>
+    <string name="google_storage_bucket" translatable="false">lm390-cd42d.firebasestorage.app</string>
+    <string name="project_id" translatable="false">lm390-cd42d</string>
+</resources>
