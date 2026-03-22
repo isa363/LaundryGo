@@ -15,8 +15,10 @@ import com.example.laundryproject.data.UserRepository;
 import com.example.laundryproject.model.User;
 import com.google.firebase.auth.FirebaseUser;
 
-// This is the main page, it uses UserRepository class to load all user info
-// This is where we will add main functionalities using the userRepository functions that we can add as more stuff gets added to the project
+// This is the main page, it uses UserRepository class to load all user info.
+// Only users with account type "Regular" and enabled = true can access this page.
+// Other account types are redirected to AdminActivity.
+
 public class MainActivity extends AppCompatActivity {
 
     private AuthManager authManager;
@@ -48,15 +50,6 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            EdgeToEdge.enable(MainActivity.this);
-            setContentView(R.layout.main_page);
-
-            logoutButton = findViewById(R.id.main_logout);
-            logoutButton.setOnClickListener(v -> {
-                authManager.signOut();
-                redirectToLogin();
-            });
-
             loadCurrentUserData();
         });
     }
@@ -73,6 +66,40 @@ public class MainActivity extends AppCompatActivity {
         userRepository.getUser(uid, new UserRepository.LoadUserCallback() {
             @Override
             public void onSuccess(User user) {
+                if (user == null) {
+                    Toast.makeText(MainActivity.this,
+                            "User data not found.",
+                            Toast.LENGTH_SHORT).show();
+                    authManager.signOut();
+                    redirectToLogin();
+                    return;
+                }
+
+                if (!user.enabled) {
+                    Toast.makeText(MainActivity.this,
+                            "Your account is not enabled yet. Please contact admin.",
+                            Toast.LENGTH_LONG).show();
+                    authManager.signOut();
+                    redirectToLogin();
+                    return;
+                }
+
+                String accountType = user.accountType != null ? user.accountType.trim() : "";
+
+                if (!accountType.equalsIgnoreCase("Regular")) {
+                    redirectToAdmin();
+                    return;
+                }
+
+                EdgeToEdge.enable(MainActivity.this);
+                setContentView(R.layout.main_page);
+
+                logoutButton = findViewById(R.id.main_logout);
+                logoutButton.setOnClickListener(v -> {
+                    authManager.signOut();
+                    redirectToLogin();
+                });
+
                 Toast.makeText(MainActivity.this,
                         "Welcome " + user.email + " | Apt: " + user.aptNumber,
                         Toast.LENGTH_SHORT).show();
@@ -81,12 +108,19 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onFailure(String errorMessage) {
                 Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+                authManager.signOut();
+                redirectToLogin();
             }
         });
     }
 
     private void redirectToLogin() {
         startActivity(new Intent(MainActivity.this, LoginActivity.class));
+        finish();
+    }
+
+    private void redirectToAdmin() {
+        startActivity(new Intent(MainActivity.this, AdminActivity.class));
         finish();
     }
 }

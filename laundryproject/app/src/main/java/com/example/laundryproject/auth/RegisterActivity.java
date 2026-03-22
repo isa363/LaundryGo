@@ -93,7 +93,7 @@ public class RegisterActivity extends AppCompatActivity {
                 authManager.registerUser(email, password, new AuthManager.AuthCallback() {
                     @Override
                     public void onSuccess(FirebaseUser firebaseUser) {
-                        User user = new User(email, aptNumber, false, accountType);
+                        User user = new User(email, aptNumber, true, accountType);
 
                         userRepository.saveUser(firebaseUser.getUid(), user, new UserRepository.FirestoreCallback() {
                             @Override

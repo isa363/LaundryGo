@@ -14,13 +14,14 @@ import com.example.laundryproject.home.MainActivity;
 import com.example.laundryproject.util.ValidationUtils;
 import com.google.firebase.auth.FirebaseUser;
 
-// This class handles the Login page, one of is variables is AuthManager class, since that class is a singleton no matter how many times you instantiate it stays the same making it reusable.
-// Handles verifying if users email is verified and after that redirectiong to main page.
+// This class handles the Login page.
+// Handles verifying if user's email is verified and redirecting to main page.
+// Also allows navigation to register page and forgot password page.
 
 public class LoginActivity extends AppCompatActivity {
 
     private EditText emailEditText, passwordEditText;
-    private TextView toRedirect;
+    private TextView toRedirect, forgotPasswordText;
     private Button loginButton;
     private AuthManager authManager;
 
@@ -35,6 +36,7 @@ public class LoginActivity extends AppCompatActivity {
         passwordEditText = findViewById(R.id.login_passwordEditText);
         loginButton = findViewById(R.id.login_loginButton);
         toRedirect = findViewById(R.id.RegisterRedirectText);
+        forgotPasswordText = findViewById(R.id.forgotPasswordText);
 
         toRedirect.setOnClickListener(v -> {
             startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
@@ -42,6 +44,10 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         loginButton.setOnClickListener(v -> attemptLogin());
+
+        forgotPasswordText.setOnClickListener(v -> {
+            startActivity(new Intent(LoginActivity.this, ForgotPasswordActivity.class));
+        });
     }
 
     @Override

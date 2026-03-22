@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F5F5F5">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Admin Panel"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:layout_marginBottom="12dp" />
+
+        <Button
+            android:id="@+id/admin_refreshButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Refresh Users"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/admin_changeAptButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Change Apartment Number"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/admin_toggleEnabledButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Change Enabled Status"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/admin_changeEmailButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Change Email"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/admin_changeAccountTypeButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Change Account Type"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/admin_deleteUserButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Delete User"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/admin_logoutButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Logout" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Users"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#000000"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="8dp" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="16dp">
+
+        <TextView
+            android:id="@+id/admin_usersTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Users will appear here"
+            android:textSize="15sp"
+            android:textColor="#000000"
+            android:background="#FFFFFF"
+            android:padding="12dp" />
+    </ScrollView>
+
+</LinearLayout>
