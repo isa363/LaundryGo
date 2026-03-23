@@ -157,6 +157,32 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupUI(FirebaseUser firebaseUser, User user) {
+
+        // Test Firebase connection directly
+        FirebaseDatabase.getInstance(
+                        "https://lm390-cd42d-default-rtdb.firebaseio.com")
+                .getReference("machines")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot snapshot) {
+                        android.util.Log.d("FB_TEST",
+                                "Connected! Children: " + snapshot.getChildrenCount());
+                        for (DataSnapshot child : snapshot.getChildren()) {
+                            android.util.Log.d("FB_TEST",
+                                    "Machine: " + child.getKey() +
+                                            " State: " + child.child("state").getValue(String.class));
+                        }
+                    }
+                    @Override
+                    public void onCancelled(DatabaseError error) {
+                        android.util.Log.e("FB_TEST",
+                                "Error: " + error.getMessage() +
+                                        " Code: " + error.getCode());
+                    }
+                });
+//Open logcat and filter by FB_Test in android studio
+
+
         setContentView(R.layout.activity_main);
 
         MaterialToolbar toolbar = findViewById(R.id.topAppBar);
