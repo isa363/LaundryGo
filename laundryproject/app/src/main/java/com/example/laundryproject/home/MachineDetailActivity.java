@@ -67,7 +67,7 @@ public class MachineDetailActivity  extends AppCompatActivity {
         });
 
         // Read this machine from Firebase
-        FirebaseDatabase.getInstance("https://lm390-cd42d-default-rtdb.firebaseio.com")
+        FirebaseDatabase.getInstance()
                 .getReference("machines")
                 .child(machineId)
                 .addValueEventListener(new ValueEventListener() {

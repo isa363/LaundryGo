@@ -45,7 +45,7 @@ public class HistoryActivity extends AppCompatActivity {
         recycler.setAdapter(adapter);
 
         // Read history from all machines
-        FirebaseDatabase.getInstance("https://lm390-cd42d-default-rtdb.firebaseio.com")
+        FirebaseDatabase.getInstance()
                 .getReference("machines")
                 .addValueEventListener(new ValueEventListener() {
                     @Override
