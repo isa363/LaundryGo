@@ -75,10 +75,12 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void run() {
             long now = System.currentTimeMillis();
-            if (lastDataReceivedAt != 0
-                    && now - lastDataReceivedAt > STALE_TIMEOUT_MS) {
+            if (lastDataReceivedAt != 0 && now - lastDataReceivedAt > STALE_TIMEOUT_MS) {
                 for (MachineItem item : machineList) {
-                    item.state = "DISCONNECTED";
+                    // Only mark disconnected if it was RUNNING or unknown
+                    if (!"AVAILABLE".equalsIgnoreCase(item.state)) {
+                        item.state = "DISCONNECTED";
+                    }
                 }
                 adapter.notifyDataSetChanged();
             }
