@@ -11,6 +11,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
@@ -158,31 +159,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupUI(FirebaseUser firebaseUser, User user) {
 
-      /*  // Test Firebase connection directly
-        FirebaseDatabase.getInstance(
-                        "https://lm390-cd42d-default-rtdb.firebaseio.com")
-                .getReference("machines")
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot snapshot) {
-                        android.util.Log.d("FB_TEST",
-                                "Connected! Children: " + snapshot.getChildrenCount());
-                        for (DataSnapshot child : snapshot.getChildren()) {
-                            android.util.Log.d("FB_TEST",
-                                    "Machine: " + child.getKey() +
-                                            " State: " + child.child("state").getValue(String.class));
-                        }
-                    }
-                    @Override
-                    public void onCancelled(DatabaseError error) {
-                        android.util.Log.e("FB_TEST",
-                                "Error: " + error.getMessage() +
-                                        " Code: " + error.getCode());
-                    }
-                });
-//Open logcat and filter by FB_Test in android studio */
-
-
         setContentView(R.layout.activity_main);
 
         MaterialToolbar toolbar = findViewById(R.id.topAppBar);
@@ -231,6 +207,9 @@ public class MainActivity extends AppCompatActivity {
 
         createNotificationChannel();
 
+
+
+
         // Listen to all machines
         FirebaseDatabase.getInstance()
                 .getReference("machines")
@@ -254,22 +233,29 @@ public class MainActivity extends AppCompatActivity {
                             if (state == null) state = "DISCONNECTED";
                             if (name  == null) name  = id;
 
-                            machineList.add(
-                                    new MachineItem(id, name, state, epoch, ts));
 
-                            // Notify when RUNNING → AVAILABLE
-                            String prev = previousStates.containsKey(id)
-                                    ? previousStates.get(id) : "AVAILABLE";
+                            // Compare current and previous state
+                            String prev = previousStates.containsKey(id) ? previousStates.get(id) : "AVAILABLE";
 
-                            if ("RUNNING".equalsIgnoreCase(prev)
-                                    && "AVAILABLE".equalsIgnoreCase(state)) {
-                                showNotification(name + " is done!",
-                                        "Your laundry is ready to pick up.");
+                            // Notify only if user subscribed to this machine
+                            if ("RUNNING".equalsIgnoreCase(prev) && "AVAILABLE".equalsIgnoreCase(state)) {
+                                SharedPreferences prefs = getSharedPreferences( "notif_prefs", MODE_PRIVATE);
+                                boolean subscribed = prefs.getBoolean(id, false);
+                                if (subscribed) {
+                                    showNotification(name + " is done!",
+                                            "Your laundry is ready to pick up.");
+                                    // Reset subscription after notifying
+                                    prefs.edit().putBoolean(id, false).apply();
+                                }
                             }
 
+                            //Save latest known state
                             previousStates.put(id, state);
-                        }
 
+                            //Update the UI model list
+                            machineList.add(new MachineItem(id, name, state, epoch, ts));
+                        }
+                        //Refresh recyclerview
                         adapter.notifyDataSetChanged();
                     }
 

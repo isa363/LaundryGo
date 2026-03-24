@@ -1,7 +1,10 @@
 package com.example.laundryproject.home;
 
+import static android.app.ProgressDialog.show;
+
 import com.example.laundryproject.R;
 
+import android.content.SharedPreferences;
 import android.icu.text.SimpleDateFormat;
 import android.os.Bundle;
 import android.os.Handler;
@@ -9,6 +12,7 @@ import android.os.Looper;
 import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -25,6 +29,8 @@ public class MachineDetailActivity  extends AppCompatActivity {
 
     private String machineId;
     private long   epochStart = 0;
+    private Button btnNotify;
+
 
     private TextView tvStatePill, tvBigTimer, tvStartedAt,
             tvMachineName, tvMachineId, tvCost, tvLastUpdated;
@@ -61,10 +67,22 @@ public class MachineDetailActivity  extends AppCompatActivity {
         tvMachineId.setText(machineId);
 
         Button btnNotify = findViewById(R.id.btnNotifyMe);
-        btnNotify.setOnClickListener(v -> {
+        // Check if user already subscribed to this machine
+        SharedPreferences prefs = getSharedPreferences("notif_prefs", MODE_PRIVATE);
+        boolean alreadySubscribed = prefs.getBoolean(machineId, false);
+
+        if (alreadySubscribed) {
             btnNotify.setText("You'll be notified");
             btnNotify.setEnabled(false);
-        });
+        }
+
+       btnNotify.setOnClickListener(v -> {
+            // Save subscription for this machine
+ prefs.edit().putBoolean(machineId, true).apply();
+ btnNotify.setText("You'll be notified");
+ btnNotify.setEnabled(false);
+ Toast.makeText(this, "You will be notified when " + machineName + " is done", Toast.LENGTH_SHORT).show();
+ });
 
         // Read this machine from Firebase
         FirebaseDatabase.getInstance()
@@ -122,6 +140,13 @@ public class MachineDetailActivity  extends AppCompatActivity {
                     : "$2.50 CAD");
             tvStartedAt.setText("Ready to use");
             stopTimer();
+
+            // Reset notification button when machine becomes available
+            SharedPreferences prefs = getSharedPreferences("notif_prefs", MODE_PRIVATE);
+            prefs.edit().putBoolean(machineId, false).apply();
+            btnNotify.setText("Notify Me When Done");
+            btnNotify.setEnabled(true);
+
 
         } else {
             tvStatePill.setText("DISCONNECTED");
