@@ -117,6 +117,10 @@ public class AdminActivity extends AppCompatActivity {
 
         logoutButton.setOnClickListener(v -> {
             authManager.signOut();
+            Toast.makeText(AdminActivity.this,
+                    "Logged out successfully",
+                    Toast.LENGTH_SHORT).show();
+
             redirectToLogin();
         });
 

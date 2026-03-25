@@ -8,7 +8,6 @@ public class User {
     public String aptNumber;
     public boolean enabled;
     public String accountType;
-
     public User() {
         // Needed for Firebase object mapping
     }
