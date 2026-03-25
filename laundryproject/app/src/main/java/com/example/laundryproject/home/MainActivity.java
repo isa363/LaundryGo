@@ -64,8 +64,8 @@ public class MainActivity extends AppCompatActivity {
 
     // Stale data detection
     private long lastDataReceivedAt = 0;
-    private static final long STALE_TIMEOUT_MS  = 10000;
-    private static final long CHECK_INTERVAL_MS = 2000;
+    private static final long STALE_TIMEOUT_MS  = 120000;  // 2 minutes
+    private static final long CHECK_INTERVAL_MS = 5000;    // check every 5 seconds
     private final Handler staleHandler = new Handler(Looper.getMainLooper());
 
     private AuthManager authManager;
@@ -219,8 +219,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onDataChange(DataSnapshot snapshot) {
                         machineList.clear();
-                        lastDataReceivedAt = System.currentTimeMillis();
-
+                        
                         for (DataSnapshot child : snapshot.getChildren()) {
                             String id    = child.getKey();
                             String state = child.child("state")
@@ -234,6 +233,11 @@ public class MainActivity extends AppCompatActivity {
 
                             if (state == null) state = "DISCONNECTED";
                             if (name  == null) name  = id;
+
+                             //Update the UI model list
+                              MachineItem item = new MachineItem(id, name, state, epoch, ts);
+                              item.lastUpdatedAt = System.currentTimeMillis();  
+                              machineList.add(item);
 
 
                             // Compare current and previous state
@@ -254,8 +258,7 @@ public class MainActivity extends AppCompatActivity {
                             //Save latest known state
                             previousStates.put(id, state);
 
-                            //Update the UI model list
-                            machineList.add(new MachineItem(id, name, state, epoch, ts));
+                            
                         }
                         //Refresh recyclerview
                         adapter.notifyDataSetChanged();
