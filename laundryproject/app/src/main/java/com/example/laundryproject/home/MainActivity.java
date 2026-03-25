@@ -296,6 +296,9 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_logout) {
             authManager.signOut();
+            Toast.makeText(MainActivity.this,
+                    "Logged out successfully",
+                    Toast.LENGTH_SHORT).show();
             redirectToLogin();
             return true;
         }
