@@ -47,6 +47,13 @@ public class MachineDetailActivity  extends AppCompatActivity {
         String machineName = getIntent().getStringExtra("MACHINE_NAME");
         epochStart = getIntent().getLongExtra("MACHINE_EPOCH", 0L);
 
+		// Null checks to prevent crash
+        if (machineName == null) machineName = machineId;
+        if (machineId == null) {
+        finish();
+        return;
+        }
+
         // Up navigation to home page
         MaterialToolbar toolbar = findViewById(R.id.detailToolbar);
         setSupportActionBar(toolbar);
@@ -91,6 +98,7 @@ public class MachineDetailActivity  extends AppCompatActivity {
                 .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot snapshot) {
+					try{
                         String state = snapshot.child("state")
                                 .getValue(String.class);
                         Long   epoch = snapshot.child("epoch")
@@ -100,11 +108,14 @@ public class MachineDetailActivity  extends AppCompatActivity {
                         Double cost  = snapshot.child("lastSessionCostCAD")
                                 .getValue(Double.class);
 
-                        if (state == null) state = "OFF";
+                        if (state == null) state = "DISCONNECTED";
                         if (epoch != null) epochStart = epoch;
 
                         updateUI(state, ts, cost);
-                    }
+                    } catch (Exception e) {
+                   android.util.Log.e("DETAIL_ERROR", e.getMessage());
+                   }
+               }
 
                     @Override
                     public void onCancelled(DatabaseError error) {
