@@ -1,4 +1,4 @@
-package com.example.laundryproject.home;  
+package com.example.laundryproject.home;
 
 import com.example.laundryproject.R;
 
@@ -209,6 +209,14 @@ public class MainActivity extends AppCompatActivity {
 
         createNotificationChannel();
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
+                    != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(
+                        new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1);
+            }
+        }
+
 
 
 
@@ -219,7 +227,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onDataChange(DataSnapshot snapshot) {
                         machineList.clear();
-                        
+
                         for (DataSnapshot child : snapshot.getChildren()) {
                             String id    = child.getKey();
                             String state = child.child("state")
@@ -234,10 +242,10 @@ public class MainActivity extends AppCompatActivity {
                             if (state == null) state = "DISCONNECTED";
                             if (name  == null) name  = id;
 
-                             //Update the UI model list
-                              MachineItem item = new MachineItem(id, name, state, epoch, ts);
-                              item.lastUpdatedAt = System.currentTimeMillis();  
-                              machineList.add(item);
+                            //Update the UI model list
+                            MachineItem item = new MachineItem(id, name, state, epoch, ts);
+                            item.lastUpdatedAt = System.currentTimeMillis();
+                            machineList.add(item);
 
 
                             // Compare current and previous state
@@ -258,7 +266,7 @@ public class MainActivity extends AppCompatActivity {
                             //Save latest known state
                             previousStates.put(id, state);
 
-                            
+
                         }
                         //Refresh recyclerview
                         adapter.notifyDataSetChanged();

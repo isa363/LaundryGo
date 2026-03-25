@@ -1,7 +1,5 @@
 package com.example.laundryproject.home;
 
-import static android.app.ProgressDialog.show;
-
 import com.example.laundryproject.R;
 
 import android.content.SharedPreferences;
@@ -25,17 +23,17 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.Date;
 import java.util.Locale;
 
-public class MachineDetailActivity  extends AppCompatActivity {
+public class MachineDetailActivity extends AppCompatActivity {
 
     private String machineId;
+    private String machineName;
     private long   epochStart = 0;
     private Button btnNotify;
-
 
     private TextView tvStatePill, tvBigTimer, tvStartedAt,
             tvMachineName, tvMachineId, tvCost, tvLastUpdated;
 
-    private Handler handler = new Handler(Looper.getMainLooper());
+    private Handler  handler = new Handler(Looper.getMainLooper());
     private Runnable timerRunnable;
 
     @Override
@@ -43,15 +41,15 @@ public class MachineDetailActivity  extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_machine_detail);
 
-        machineId = getIntent().getStringExtra("MACHINE_ID");
-        String machineName = getIntent().getStringExtra("MACHINE_NAME");
-        epochStart = getIntent().getLongExtra("MACHINE_EPOCH", 0L);
+        machineId   = getIntent().getStringExtra("MACHINE_ID");
+        machineName = getIntent().getStringExtra("MACHINE_NAME");
+        epochStart  = getIntent().getLongExtra("MACHINE_EPOCH", 0L);
 
-		// Null checks to prevent crash
+        // Null checks to prevent crash
         if (machineName == null) machineName = machineId;
         if (machineId == null) {
-        finish();
-        return;
+            finish();
+            return;
         }
 
         // Up navigation to home page
@@ -73,23 +71,22 @@ public class MachineDetailActivity  extends AppCompatActivity {
         tvMachineName.setText(machineName);
         tvMachineId.setText(machineId);
 
-        Button btnNotify = findViewById(R.id.btnNotifyMe);
+        btnNotify = findViewById(R.id.btnNotifyMe);
+
         // Check if user already subscribed to this machine
         SharedPreferences prefs = getSharedPreferences("notif_prefs", MODE_PRIVATE);
         boolean alreadySubscribed = prefs.getBoolean(machineId, false);
-
         if (alreadySubscribed) {
             btnNotify.setText("You'll be notified");
             btnNotify.setEnabled(false);
         }
 
-       btnNotify.setOnClickListener(v -> {
-            // Save subscription for this machine
- prefs.edit().putBoolean(machineId, true).apply();
- btnNotify.setText("You'll be notified");
- btnNotify.setEnabled(false);
- Toast.makeText(this, "You will be notified when " + machineName + " is done", Toast.LENGTH_SHORT).show();
- });
+        btnNotify.setOnClickListener(v -> {
+            prefs.edit().putBoolean(machineId, true).apply();
+            btnNotify.setText("You'll be notified");
+            btnNotify.setEnabled(false);
+            Toast.makeText(this, "You will be notified when " + machineName + " is done", Toast.LENGTH_SHORT).show();
+        });
 
         // Read this machine from Firebase
         FirebaseDatabase.getInstance()
@@ -98,36 +95,30 @@ public class MachineDetailActivity  extends AppCompatActivity {
                 .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot snapshot) {
-					try{
-                        String state = snapshot.child("state")
-                                .getValue(String.class);
-                        Long   epoch = snapshot.child("epoch")
-                                .getValue(Long.class);
-                        String ts    = snapshot.child("timestamp")
-                                .getValue(String.class);
-                        Double cost  = snapshot.child("lastSessionCostCAD")
-                                .getValue(Double.class);
+                        try {
+                            String state = snapshot.child("state").getValue(String.class);
+                            Long   epoch = snapshot.child("epoch").getValue(Long.class);
+                            String ts    = snapshot.child("timestamp").getValue(String.class);
+                            Double cost  = snapshot.child("lastSessionCostCAD").getValue(Double.class);
 
-                        if (state == null) state = "DISCONNECTED";
-                        if (epoch != null) epochStart = epoch;
+                            if (state == null) state = "DISCONNECTED";
+                            if (epoch != null) epochStart = epoch;
 
-                        updateUI(state, ts, cost);
-                    } catch (Exception e) {
-                   android.util.Log.e("DETAIL_ERROR", e.getMessage());
-                   }
-               }
+                            updateUI(state, ts, cost);
+                        } catch (Exception e) {
+                            android.util.Log.e("DETAIL_ERROR", e.getMessage());
+                        }
+                    }
 
                     @Override
                     public void onCancelled(DatabaseError error) {
-
                         updateUI("DISCONNECTED", null, null);
                     }
                 });
     }
 
     private void updateUI(String state, String timestamp, Double cost) {
-        SimpleDateFormat fmt =
-                new SimpleDateFormat("h:mm a", Locale.getDefault());
+        SimpleDateFormat fmt = new SimpleDateFormat("h:mm a", Locale.getDefault());
 
         if (timestamp != null) tvLastUpdated.setText(timestamp);
 
@@ -138,8 +129,7 @@ public class MachineDetailActivity  extends AppCompatActivity {
                     ? String.format(Locale.US, "$%.2f CAD", cost)
                     : "$2.50 CAD");
             if (epochStart > 0)
-                tvStartedAt.setText("Started at "
-                        + fmt.format(new Date(epochStart * 1000L)));
+                tvStartedAt.setText("Started at " + fmt.format(new Date(epochStart * 1000L)));
             startTimer();
 
         } else if ("AVAILABLE".equalsIgnoreCase(state)) {
@@ -152,12 +142,9 @@ public class MachineDetailActivity  extends AppCompatActivity {
             tvStartedAt.setText("Ready to use");
             stopTimer();
 
-            // Reset notification button when machine becomes available
-            SharedPreferences prefs = getSharedPreferences("notif_prefs", MODE_PRIVATE);
-            prefs.edit().putBoolean(machineId, false).apply();
+            // Reset button — MainActivity handles the actual notification
             btnNotify.setText("Notify Me When Done");
             btnNotify.setEnabled(true);
-
 
         } else {
             tvStatePill.setText("DISCONNECTED");
@@ -180,8 +167,7 @@ public class MachineDetailActivity  extends AppCompatActivity {
                 long h = elapsed / 3600;
                 long m = (elapsed % 3600) / 60;
                 long s = elapsed % 60;
-                tvBigTimer.setText(
-                        String.format(Locale.US, "%02d:%02d:%02d", h, m, s));
+                tvBigTimer.setText(String.format(Locale.US, "%02d:%02d:%02d", h, m, s));
                 handler.postDelayed(this, 1000);
             }
         };
@@ -207,5 +193,4 @@ public class MachineDetailActivity  extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
-
 }
