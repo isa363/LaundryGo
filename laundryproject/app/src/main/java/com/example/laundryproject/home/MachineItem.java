@@ -8,6 +8,7 @@ public class MachineItem {
     public Long   epochStart;
     public String timestamp;
     public long   elapsedSeconds;
+    public long   lastUpdatedAt;
 
     public MachineItem(String machineId, String machineName,
                        String state, Long epochStart, String timestamp) {
@@ -17,6 +18,7 @@ public class MachineItem {
         this.epochStart     = epochStart;
         this.timestamp      = timestamp;
         this.elapsedSeconds = 0;
+        this.lastUpdatedAt  = System.currentTimeMillis();
     }
 
 }
