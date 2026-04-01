@@ -23,12 +23,13 @@ public class RegisterActivity extends AppCompatActivity {
 
     private static final String ADMIN_KEY = "ADMIN123";
 
-    private EditText emailEditText, passwordEditText, aptNumberEditText, adminKeyEditText;
+    private EditText emailEditText, passwordEditText, aptNumberEditText, adminKeyEditText, buildingCodeEditText;
     private Button registerButton;
     private TextView toLogin;
     private RadioGroup accountTypeGroup;
     private TextInputLayout adminKeyInputLayout;
     private TextInputLayout aptNumberInputLayout;
+    private TextInputLayout buildingCodeInputLayout;
 
     private AuthManager authManager;
     private UserRepository userRepository;
@@ -45,9 +46,11 @@ public class RegisterActivity extends AppCompatActivity {
         passwordEditText = findViewById(R.id.register_passwordEditText);
         aptNumberEditText = findViewById(R.id.register_aptNumberEditText);
         adminKeyEditText = findViewById(R.id.register_adminKeyEditText);
+        buildingCodeEditText = findViewById(R.id.register_buildingCodeEditText);
 
         adminKeyInputLayout = findViewById(R.id.register_adminKeyInputLayout);
         aptNumberInputLayout = findViewById(R.id.register_aptNumberInputLayout);
+        buildingCodeInputLayout = findViewById(R.id.register_buildingCodeInputLayout);
 
         accountTypeGroup = findViewById(R.id.register_accountTypeRadioGroup);
         registerButton = findViewById(R.id.register_registerButton);
@@ -56,16 +59,22 @@ public class RegisterActivity extends AppCompatActivity {
         // Default state = Regular selected
         adminKeyInputLayout.setVisibility(View.GONE);
         aptNumberInputLayout.setVisibility(View.VISIBLE);
+        buildingCodeInputLayout.setVisibility(View.VISIBLE);
 
         accountTypeGroup.setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.register_adminRadioButton) {
                 adminKeyInputLayout.setVisibility(View.VISIBLE);
                 aptNumberInputLayout.setVisibility(View.GONE);
+                buildingCodeInputLayout.setVisibility(View.GONE);
+
                 aptNumberEditText.setText("");
+                buildingCodeEditText.setText("");
             } else {
                 adminKeyInputLayout.setVisibility(View.GONE);
                 adminKeyEditText.setText("");
+
                 aptNumberInputLayout.setVisibility(View.VISIBLE);
+                buildingCodeInputLayout.setVisibility(View.VISIBLE);
             }
         });
 
@@ -82,6 +91,7 @@ public class RegisterActivity extends AppCompatActivity {
         String password = passwordEditText.getText().toString();
         String aptNumber = aptNumberEditText.getText().toString().trim();
         String adminKey = adminKeyEditText.getText().toString().trim();
+        String buildingCode = buildingCodeEditText.getText().toString().trim().toUpperCase();
 
         int selectedId = accountTypeGroup.getCheckedRadioButtonId();
         RadioButton selectedRadioButton = findViewById(selectedId);
@@ -105,30 +115,58 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
+        if (accountType.equals("Regular") && !ValidationUtils.isNotEmpty(buildingCode)) {
+            Toast.makeText(this, "Building code is required", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         if (accountType.equals("Admin") && !adminKey.equals(ADMIN_KEY)) {
             Toast.makeText(this, "Invalid admin key", Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (accountType.equals("Admin")) {
-            registerUser(email, password, "", accountType);
+            registerUser(email, password, "", accountType, "");
         } else {
-            checkApartmentAndRegister(email, password, aptNumber, accountType);
+            checkBuildingCodeAndRegister(email, password, aptNumber, accountType, buildingCode);
         }
     }
 
-    private void checkApartmentAndRegister(String email, String password, String aptNumber, String accountType) {
-        userRepository.checkApartmentExists(aptNumber, new UserRepository.ApartmentCheckCallback() {
+    private void checkBuildingCodeAndRegister(String email, String password, String aptNumber, String accountType, String buildingCode) {
+        userRepository.checkBuildingCodeExists(buildingCode, new UserRepository.BuildingCodeCheckCallback() {
             @Override
             public void onResult(boolean exists) {
-                if (exists) {
+                if (!exists) {
                     Toast.makeText(RegisterActivity.this,
-                            "An account already exists for this apartment number",
+                            "Invalid or disabled building code",
                             Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                registerUser(email, password, aptNumber, accountType);
+                checkApartmentAndRegister(email, password, aptNumber, accountType, buildingCode);
+            }
+
+            @Override
+            public void onFailure(String errorMessage) {
+                Toast.makeText(RegisterActivity.this,
+                        "Could not verify building code: " + errorMessage,
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void checkApartmentAndRegister(String email, String password, String aptNumber, String accountType, String buildingCode) {
+        userRepository.checkApartmentExists(buildingCode, aptNumber, new UserRepository.ApartmentCheckCallback() {
+            @Override
+            public void onResult(boolean exists) {
+                if (exists) {
+                    Toast.makeText(RegisterActivity.this,
+                            "An account already exists for this apartment in this building",
+                            Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                registerUser(email, password, aptNumber, accountType, buildingCode);
             }
 
             @Override
@@ -140,15 +178,26 @@ public class RegisterActivity extends AppCompatActivity {
         });
     }
 
-    private void registerUser(String email, String password, String aptNumber, String accountType) {
+    private void registerUser(String email, String password, String aptNumber, String accountType, String buildingCode) {
         authManager.registerUser(email, password, new AuthManager.AuthCallback() {
             @Override
             public void onSuccess(FirebaseUser firebaseUser) {
-                User user = new User(email, aptNumber, true, accountType);
+                User user = new User(email, aptNumber, true, accountType, buildingCode);
 
                 userRepository.saveUser(firebaseUser.getUid(), user, new UserRepository.FirestoreCallback() {
                     @Override
                     public void onSuccess() {
+                        if (accountType.equals("Admin")) {
+                            Toast.makeText(RegisterActivity.this,
+                                    "Admin registration successful.",
+                                    Toast.LENGTH_LONG).show();
+
+                            authManager.signOut();
+                            startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
+                            finish();
+                            return;
+                        }
+
                         firebaseUser.sendEmailVerification()
                                 .addOnCompleteListener(task -> {
                                     if (task.isSuccessful()) {

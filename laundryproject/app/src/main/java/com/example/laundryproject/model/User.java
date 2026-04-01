@@ -8,14 +8,17 @@ public class User {
     public String aptNumber;
     public boolean enabled;
     public String accountType;
+    public String buildingCode;
+
     public User() {
         // Needed for Firebase object mapping
     }
 
-    public User(String email, String aptNumber, boolean enabled, String accountType) {
+    public User(String email, String aptNumber, boolean enabled, String accountType, String buildingCode) {
         this.email = email;
         this.aptNumber = aptNumber;
         this.enabled = enabled;
         this.accountType = accountType;
+        this.buildingCode = buildingCode;
     }
 }

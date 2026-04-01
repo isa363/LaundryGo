@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="Gradle: com.google.firebase:firebase-firestore:26.1.1@aar" external-system-id="GRADLE">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../.gradle/caches/9.1.0/transforms/9ff1ea46e9df70972070436d237497e3/workspace/transformed/firebase-firestore-26.1.1/jars/classes.jar!/" />
+      <root url="file://$PROJECT_DIR$/../.gradle/caches/9.1.0/transforms/9ff1ea46e9df70972070436d237497e3/workspace/transformed/firebase-firestore-26.1.1/AndroidManifest.xml" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../.gradle/caches/modules-2/files-2.1/com.google.firebase/firebase-firestore/26.1.1/e746a51b761218b1a0beaf7fb2a04357c5527154/firebase-firestore-26.1.1-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

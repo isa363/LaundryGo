@@ -3,6 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/LaundryGo.iml" filepath="$PROJECT_DIR$/.idea/LaundryGo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/laundryproject.iml" filepath="$PROJECT_DIR$/.idea/modules/laundryproject.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/laundryproject.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/laundryproject.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/laundryproject.app.main.iml" filepath="$PROJECT_DIR$/.idea/modules/app/laundryproject.app.main.iml" />
     </modules>
   </component>
 </project>
