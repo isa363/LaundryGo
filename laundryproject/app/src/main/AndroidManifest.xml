@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
 
     <application
@@ -16,33 +16,33 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Laundryproject">
 
-<!-- Starting screens -->
+        <!-- Starting screens -->
         <!-- Auth screens -->
         <activity
             android:name=".auth.LoginActivity"
             android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
         <activity
             android:name=".auth.RegisterActivity"
-            android:exported="false"/>
+            android:exported="false" />
 
         <activity
             android:name=".auth.ForgotPasswordActivity"
-            android:exported="false"/>
+            android:exported="false" />
 
         <!-- Main app screens -->
         <activity
             android:name=".home.MainActivity"
-            android:exported="false"/>
+            android:exported="false" />
 
         <activity
             android:name=".home.AdminActivity"
-            android:exported="false"/>
+            android:exported="false" />
 
         <activity
             android:name=".home.MachineDetailActivity"
@@ -50,7 +50,7 @@
             android:parentActivityName=".home.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".home.MainActivity"/>
+                android:value=".home.MainActivity" />
         </activity>
 
         <activity
@@ -59,13 +59,22 @@
             android:parentActivityName=".home.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".home.MainActivity"/>
+                android:value=".home.MainActivity" />
+        </activity>
+
+        <activity
+            android:name=".home.ProfileActivity"
+            android:exported="false"
+            android:parentActivityName=".home.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".home.MainActivity" />
         </activity>
 
 
-<!--        <activity-->
-<!--            android:name=".LucyActivity"-->
-<!--            android:exported="false" />-->
+        <!--        <activity-->
+        <!--            android:name=".LucyActivity"-->
+        <!--            android:exported="false" />-->
 
     </application>
 

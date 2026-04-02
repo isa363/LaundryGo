@@ -203,7 +203,11 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
             if (id == R.id.nav_machines) return true;
-            if (id == R.id.nav_account)  return true;
+            //if (id == R.id.nav_account)  return true;
+            if (id == R.id.nav_account) {
+                startActivity(new Intent(this, ProfileActivity.class));
+                return true;
+            }
             return false;
         });
 
