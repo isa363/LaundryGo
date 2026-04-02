@@ -14,6 +14,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
 import com.example.laundryproject.R;
+import com.google.firebase.auth.ActionCodeSettings;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
@@ -77,33 +78,41 @@ public class EmailDialog extends DialogFragment {
             AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), password);
 
             user.reauthenticate(credential)
-                    .addOnSuccessListener(unused ->
-                            user.verifyBeforeUpdateEmail(email)
-                                    .addOnSuccessListener(v2 -> {
-                                        Toast.makeText(
-                                                getContext(),
-                                                "Verification email sent. Check your inbox.",
-                                                Toast.LENGTH_LONG
-                                        ).show();
+                    .addOnSuccessListener(unused -> {
+                        ActionCodeSettings actionCodeSettings =
+                                ActionCodeSettings.newBuilder()
+                                        .setUrl("https://laundryproject-ecf27.firebaseapp.com/emailChange")
+                                        .setHandleCodeInApp(true)
+                                        .setAndroidPackageName(
+                                                "com.example.laundryproject",
+                                                true,
+                                                null
+                                        )
+                                        .build();
 
-                                        if (listener != null) {
-                                            listener.onEmailVerificationSent(email);
-                                        }
+                        user.verifyBeforeUpdateEmail(email, actionCodeSettings)
+                                .addOnSuccessListener(v2 -> {
+                                    if (listener != null) {
+                                        listener.onEmailVerificationSent(email);
+                                    }
 
-                                        dialog.dismiss();
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        confirmBtn.setEnabled(true);
-                                        Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
-                                    })
-                    )
+                                    Toast.makeText(
+                                            getContext(),
+                                            "Verification link sent. Open it from your email.",
+                                            Toast.LENGTH_LONG
+                                    ).show();
+
+                                    dialog.dismiss();
+                                })
+                                .addOnFailureListener(e -> {
+                                    confirmBtn.setEnabled(true);
+                                    Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                                });
+                    })
                     .addOnFailureListener(e -> {
                         confirmBtn.setEnabled(true);
-                        Toast.makeText(
-                                getContext(),
-                                "Authentication failed. Check your password.",
-                                Toast.LENGTH_SHORT
-                        ).show();
+                        currentPassword.setError("Current password is incorrect");
+                        currentPassword.requestFocus();
                     });
         });
 

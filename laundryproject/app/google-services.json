@@ -1,9 +1,9 @@
 {
   "project_info": {
     "project_number": "692209942783",
+    "firebase_url": "https://laundryproject-ecf27-default-rtdb.firebaseio.com",
     "project_id": "laundryproject-ecf27",
-    "storage_bucket": "laundryproject-ecf27.firebasestorage.app",
-    "firebase_url": "https://laundryproject-ecf27-default-rtdb.firebaseio.com"
+    "storage_bucket": "laundryproject-ecf27.firebasestorage.app"
   },
   "client": [
     {

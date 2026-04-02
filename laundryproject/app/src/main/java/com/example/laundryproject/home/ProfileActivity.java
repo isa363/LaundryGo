@@ -1,5 +1,6 @@
 package com.example.laundryproject.home;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.Button;
@@ -13,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.laundryproject.R;
 import com.example.laundryproject.auth.AuthManager;
+import com.example.laundryproject.auth.LoginActivity;
 import com.example.laundryproject.data.UserRepository;
 import com.example.laundryproject.dialogs.EmailDialog;
 import com.example.laundryproject.dialogs.PassDialog;
@@ -55,6 +57,14 @@ public class ProfileActivity extends AppCompatActivity
         setupToolbar();
         loadProfileData();
         setupListeners();
+
+        if (getIntent().getBooleanExtra("email_updated", false)) {
+            currentUser = authManager.getCurrentUser();
+            if (currentUser != null && currentUser.getEmail() != null) {
+                viewEmail.setText(currentUser.getEmail());
+            }
+            loadProfileData();
+        }
     }
 
     @Override
@@ -122,7 +132,8 @@ public class ProfileActivity extends AppCompatActivity
 
     private void loadProfileData() {
         if (currentUser == null) {
-            Toast.makeText(this, "No signed-in user found.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please sign in again.", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, LoginActivity.class));
             finish();
             return;
         }
