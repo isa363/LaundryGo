@@ -15,21 +15,23 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Laundryproject">
         <activity
+            android:name=".home.AdminViewUsersActivity"
+            android:exported="false" />
+        <activity
             android:name=".home.EmailActionHandlerActivity"
             android:exported="true">
-
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:scheme="https"
                     android:host="laundryproject-ecf27.firebaseapp.com"
-                    android:pathPrefix="/__/auth/links" />
+                    android:pathPrefix="/__/auth/links"
+                    android:scheme="https" />
             </intent-filter>
-        </activity>
-        <!-- Starting screens -->
+        </activity> <!-- Starting screens -->
         <!-- Auth screens -->
         <activity
             android:name=".auth.LoginActivity"
@@ -76,7 +78,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".home.MainActivity" />
         </activity>
-
     </application>
 
 </manifest>

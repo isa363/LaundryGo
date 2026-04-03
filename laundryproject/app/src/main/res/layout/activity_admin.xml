@@ -11,11 +11,11 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="#1a56a0"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:title="ADMIN PANEL"
+        app:titleTextColor="#FFFFFF"
         app:layout_constraintTop_toTopOf="parent"
-        app:title="Admin Panel"
-        app:titleTextColor="#FFFFFF" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <ScrollView
         android:id="@+id/adminMainScroll"
@@ -30,207 +30,119 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="12dp">
+            android:padding="16dp">
 
+            <!-- Top row: View Users + View Machines -->
             <LinearLayout
-                android:id="@+id/adminButtonContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:orientation="horizontal">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/admin_refreshButton"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="4dp"
-                        android:text="Refresh"
-                        app:backgroundTint="#1a56a0" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/admin_changeAptButton"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="4dp"
-                        android:text="Change Apt"
-                        app:backgroundTint="#1a56a0" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:orientation="horizontal">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/admin_changeEmailButton"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="4dp"
-                        android:text="Change Email"
-                        app:backgroundTint="#1a56a0" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/admin_toggleEnabledButton"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="4dp"
-                        android:text="Toggle Enabled"
-                        app:backgroundTint="#1a56a0" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:orientation="horizontal">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/admin_changeBuildingCodeButton"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="4dp"
-                        android:text="Change Bldg Code"
-                        app:backgroundTint="#1a56a0" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/admin_deleteUserButton"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="4dp"
-                        android:text="Delete User"
-                        app:backgroundTint="#F44336" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:orientation="horizontal">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/admin_changeAccountTypeButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Change Type"
-                        app:backgroundTint="#1a56a0" />
-                </LinearLayout>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="6dp"
-                    android:letterSpacing="0.1"
-                    android:text="BUILDING CODES"
-                    android:textColor="#999999"
-                    android:textSize="10sp"
-                    android:textStyle="bold" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:orientation="horizontal">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/admin_createBuildingCodeButton"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="4dp"
-                        android:text="Create Code"
-                        app:backgroundTint="#1a56a0" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/admin_editBuildingCodeButton"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="4dp"
-                        android:text="Edit Code"
-                        app:backgroundTint="#1a56a0" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:orientation="horizontal">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/admin_toggleBuildingCodeButton"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="4dp"
-                        android:text="Toggle Code"
-                        app:backgroundTint="#1a56a0" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/admin_deleteBuildingCodeButton"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="4dp"
-                        android:text="Delete Code"
-                        app:backgroundTint="#F44336" />
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/admin_buildingCodesTextView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    android:background="#FFFFFF"
-                    android:lineSpacingExtra="4dp"
-                    android:padding="14dp"
-                    android:text="Building codes will appear here"
-                    android:textColor="#1A1A1A"
-                    android:textSize="13sp" />
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginBottom="16dp">
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/admin_logoutButton"
-                    android:layout_width="match_parent"
+                    android:id="@+id/admin_viewUsersButton"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Log Out"
-                    app:backgroundTint="#888888" />
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:text="View Users"
+                    android:textColor="@android:color/white"
+                    app:backgroundTint="#1a56a0" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/admin_viewMachinesButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:text="View Machines"
+                    android:textColor="@android:color/white"
+                    app:backgroundTint="#1a56a0" />
             </LinearLayout>
 
+            <!-- Building codes label -->
             <TextView
-                android:id="@+id/tvUsersLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:letterSpacing="0.1"
-                android:text="REGISTERED USERS"
+                android:text="BUILDING CODES"
                 android:textColor="#999999"
                 android:textSize="10sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:layout_marginBottom="6dp" />
 
-            <TextView
-                android:id="@+id/admin_usersTextView"
+            <!-- Building code buttons row 1 -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:layout_marginBottom="12dp"
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/admin_createBuildingCodeButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="4dp"
+                    android:text="Create Code"
+                    app:backgroundTint="#1a56a0" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/admin_editBuildingCodeButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:text="Edit Code"
+                    app:backgroundTint="#1a56a0" />
+            </LinearLayout>
+
+            <!-- Building code buttons row 2 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/admin_toggleBuildingCodeButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="4dp"
+                    android:text="Toggle Code"
+                    app:backgroundTint="#1a56a0" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/admin_deleteBuildingCodeButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:text="Delete Code"
+                    app:backgroundTint="#F44336" />
+            </LinearLayout>
+
+            <!-- Building codes text box -->
+            <TextView
+                android:id="@+id/admin_buildingCodesTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:background="#FFFFFF"
-                android:lineSpacingExtra="4dp"
                 android:padding="14dp"
-                android:text="Users will appear here"
+                android:text="Building codes will appear here"
                 android:textColor="#1A1A1A"
-                android:textSize="13sp" />
+                android:textSize="13sp"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Simple logout button at bottom -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/admin_logoutButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Log Out"
+                android:textColor="@android:color/white"
+                app:backgroundTint="#888888" />
 
         </LinearLayout>
     </ScrollView>
