@@ -65,77 +65,34 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="BUILDING CODES"
+                android:text="BUILDING INFORMATION"
                 android:textColor="#999999"
                 android:textSize="10sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="6dp" />
 
-            <!-- Building code buttons row 1 -->
-            <LinearLayout
+            <!-- Only Edit Code button remains -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/admin_editBuildingCodeButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
+                android:text="Edit Building Code"
+                android:layout_marginBottom="8dp"
+                app:backgroundTint="#1a56a0" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/admin_createBuildingCodeButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="4dp"
-                    android:text="Create Code"
-                    app:backgroundTint="#1a56a0" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/admin_editBuildingCodeButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="4dp"
-                    android:text="Edit Code"
-                    app:backgroundTint="#1a56a0" />
-            </LinearLayout>
-
-            <!-- Building code buttons row 2 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/admin_toggleBuildingCodeButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="4dp"
-                    android:text="Toggle Code"
-                    app:backgroundTint="#1a56a0" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/admin_deleteBuildingCodeButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="4dp"
-                    android:text="Delete Code"
-                    app:backgroundTint="#F44336" />
-            </LinearLayout>
-
-            <!-- Building codes text box -->
+            <!-- Building info text box -->
             <TextView
                 android:id="@+id/admin_buildingCodesTextView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="#FFFFFF"
                 android:padding="14dp"
-                android:text="Building codes will appear here"
+                android:text="Building info will appear here"
                 android:textColor="#1A1A1A"
                 android:textSize="13sp"
                 android:layout_marginBottom="16dp" />
 
-            <!-- Simple logout button at bottom -->
+            <!-- Logout button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/admin_logoutButton"
                 android:layout_width="match_parent"

@@ -20,23 +20,20 @@ import com.example.laundryproject.data.UserRepository;
 import com.example.laundryproject.model.User;
 import com.google.firebase.auth.FirebaseUser;
 
-import java.util.List;
-import java.util.Locale;
-
 public class AdminActivity extends AppCompatActivity {
 
     private AuthManager authManager;
     private UserRepository userRepository;
 
     private Button logoutButton;
-
-    private Button createBuildingCodeButton;
-    private Button editBuildingCodeButton;
-    private Button toggleBuildingCodeButton;
-    private Button deleteBuildingCodeButton;
-
     private Button viewUsersButton;
+    private Button viewMachinesButton;
+
+    private Button editBuildingCodeButton;
+
     private TextView buildingCodesTextView;
+
+    private String adminBuildingName; // The building assigned to this admin
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,14 +81,13 @@ public class AdminActivity extends AppCompatActivity {
                     return;
                 }
 
-                String accountType = user.accountType != null ? user.accountType.trim() : "";
-
-                if (!accountType.equalsIgnoreCase("Admin")) {
+                if (!"Admin".equalsIgnoreCase(user.accountType)) {
                     Toast.makeText(AdminActivity.this, "Access denied.", Toast.LENGTH_SHORT).show();
                     redirectToLogin();
                     return;
                 }
 
+                adminBuildingName = user.buildingCode; // buildingCode now stores buildingName
                 setupAdminPage();
             }
 
@@ -109,13 +105,12 @@ public class AdminActivity extends AppCompatActivity {
 
         logoutButton = findViewById(R.id.admin_logoutButton);
         viewUsersButton = findViewById(R.id.admin_viewUsersButton);
+        viewMachinesButton = findViewById(R.id.admin_viewMachinesButton);
 
-        createBuildingCodeButton = findViewById(R.id.admin_createBuildingCodeButton);
         editBuildingCodeButton = findViewById(R.id.admin_editBuildingCodeButton);
-        toggleBuildingCodeButton = findViewById(R.id.admin_toggleBuildingCodeButton);
-        deleteBuildingCodeButton = findViewById(R.id.admin_deleteBuildingCodeButton);
 
         buildingCodesTextView = findViewById(R.id.admin_buildingCodesTextView);
+
 
         logoutButton.setOnClickListener(v -> {
             authManager.signOut();
@@ -128,34 +123,30 @@ public class AdminActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        createBuildingCodeButton.setOnClickListener(v -> showCreateBuildingCodeDialog());
-        editBuildingCodeButton.setOnClickListener(v -> showEditBuildingCodeDialog());
-        toggleBuildingCodeButton.setOnClickListener(v -> showToggleBuildingCodeDialog());
-        deleteBuildingCodeButton.setOnClickListener(v -> showDeleteBuildingCodeDialog());
+        viewMachinesButton.setOnClickListener(v -> {
+            Intent intent = new Intent(AdminActivity.this, AdminViewMachinesActivity.class);
+            startActivity(intent);
+        });
 
-        loadAllBuildingCodes();
+        editBuildingCodeButton.setOnClickListener(v -> showEditBuildingCodeDialog());
+
+        loadAdminBuilding();
     }
 
+    private void loadAdminBuilding() {
+        if (adminBuildingName == null || adminBuildingName.isEmpty()) {
+            buildingCodesTextView.setText("No building assigned to this admin.");
+            return;
+        }
 
-    private void loadAllBuildingCodes() {
-        userRepository.getAllBuildingCodes(new UserRepository.LoadBuildingCodesCallback() {
+        userRepository.getBuildingCode(adminBuildingName, new UserRepository.BuildingCodeFetchCallback() {
             @Override
-            public void onSuccess(List<UserRepository.BuildingCodeItem> buildingCodes) {
-                if (buildingCodes.isEmpty()) {
-                    buildingCodesTextView.setText("No building codes found.");
-                    return;
-                }
+            public void onSuccess(String code) {
+                String text = "Building: " + adminBuildingName + "\n"
+                        + "Code: " + code + "\n"
+                        + "-----------------------------\n";
 
-                StringBuilder builder = new StringBuilder();
-
-                for (UserRepository.BuildingCodeItem item : buildingCodes) {
-                    builder.append("Code: ").append(item.code).append("\n");
-                    builder.append("Building Name: ").append(item.buildingName != null ? item.buildingName : "N/A").append("\n");
-                    builder.append("Enabled: ").append(item.enabled).append("\n");
-                    builder.append("-----------------------------\n");
-                }
-
-                buildingCodesTextView.setText(builder.toString());
+                buildingCodesTextView.setText(text);
             }
 
             @Override
@@ -165,101 +156,37 @@ public class AdminActivity extends AppCompatActivity {
         });
     }
 
-    private void showCreateBuildingCodeDialog() {
-        final EditText codeInput = new EditText(this);
-        codeInput.setHint("Enter building code");
-
-        final EditText buildingNameInput = new EditText(this);
-        buildingNameInput.setHint("Enter building name");
-
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(40, 20, 40, 20);
-        layout.addView(codeInput);
-        layout.addView(buildingNameInput);
-
-        new AlertDialog.Builder(this)
-                .setTitle("Create Building Code")
-                .setView(layout)
-                .setPositiveButton("Save", (dialog, which) -> {
-                    String code = codeInput.getText().toString().trim().toUpperCase(Locale.ROOT);
-                    String buildingName = buildingNameInput.getText().toString().trim();
-
-                    if (code.isEmpty()) {
-                        Toast.makeText(this, "Building code is required.", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-
-                    if (buildingName.isEmpty()) {
-                        Toast.makeText(this, "Building name is required.", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-
-                    userRepository.createBuildingCode(code, buildingName, true, new UserRepository.FirestoreCallback() {
-                        @Override
-                        public void onSuccess() {
-                            Toast.makeText(AdminActivity.this, "Building code saved.", Toast.LENGTH_SHORT).show();
-                            loadAllBuildingCodes();
-                        }
-
-                        @Override
-                        public void onFailure(String errorMessage) {
-                            Toast.makeText(AdminActivity.this, errorMessage, Toast.LENGTH_LONG).show();
-                        }
-                    });
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
-    }
-
     private void showEditBuildingCodeDialog() {
+        if (adminBuildingName == null) {
+            Toast.makeText(this, "No building assigned.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         final EditText codeInput = new EditText(this);
-        codeInput.setHint("Enter building code to edit");
-
-        final EditText buildingNameInput = new EditText(this);
-        buildingNameInput.setHint("Enter new building name");
-
-        final EditText enabledInput = new EditText(this);
-        enabledInput.setHint("Enter true or false");
-        enabledInput.setInputType(InputType.TYPE_CLASS_TEXT);
+        codeInput.setHint("Enter new building code");
+        codeInput.setInputType(InputType.TYPE_CLASS_TEXT);
 
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(40, 20, 40, 20);
         layout.addView(codeInput);
-        layout.addView(buildingNameInput);
-        layout.addView(enabledInput);
 
         new AlertDialog.Builder(this)
-                .setTitle("Edit Building Code")
+                .setTitle("Edit Code for " + adminBuildingName)
                 .setView(layout)
                 .setPositiveButton("Save", (dialog, which) -> {
-                    String code = codeInput.getText().toString().trim().toUpperCase(Locale.ROOT);
-                    String buildingName = buildingNameInput.getText().toString().trim();
-                    String enabledText = enabledInput.getText().toString().trim();
+                    String newCode = codeInput.getText().toString().trim();
 
-                    if (code.isEmpty()) {
-                        Toast.makeText(this, "Building code is required.", Toast.LENGTH_SHORT).show();
+                    if (newCode.isEmpty()) {
+                        Toast.makeText(this, "Code cannot be empty.", Toast.LENGTH_SHORT).show();
                         return;
                     }
 
-                    if (buildingName.isEmpty()) {
-                        Toast.makeText(this, "Building name is required.", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-
-                    if (!enabledText.equalsIgnoreCase("true") && !enabledText.equalsIgnoreCase("false")) {
-                        Toast.makeText(this, "Enabled must be true or false.", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-
-                    boolean enabled = Boolean.parseBoolean(enabledText);
-
-                    userRepository.editBuildingCode(code, buildingName, enabled, new UserRepository.FirestoreCallback() {
+                    userRepository.editBuilding(adminBuildingName, newCode, true, new UserRepository.FirestoreCallback() {
                         @Override
                         public void onSuccess() {
-                            Toast.makeText(AdminActivity.this, "Building code updated.", Toast.LENGTH_SHORT).show();
-                            loadAllBuildingCodes();
+                            Toast.makeText(AdminActivity.this, "Code updated.", Toast.LENGTH_SHORT).show();
+                            loadAdminBuilding();
                         }
 
                         @Override
@@ -272,87 +199,6 @@ public class AdminActivity extends AppCompatActivity {
                 .show();
     }
 
-    private void showToggleBuildingCodeDialog() {
-        final EditText codeInput = new EditText(this);
-        codeInput.setHint("Enter building code");
-
-        final EditText enabledInput = new EditText(this);
-        enabledInput.setHint("Enter true or false");
-        enabledInput.setInputType(InputType.TYPE_CLASS_TEXT);
-
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(40, 20, 40, 20);
-        layout.addView(codeInput);
-        layout.addView(enabledInput);
-
-        new AlertDialog.Builder(this)
-                .setTitle("Toggle Building Code")
-                .setView(layout)
-                .setPositiveButton("Save", (dialog, which) -> {
-                    String code = codeInput.getText().toString().trim().toUpperCase(Locale.ROOT);
-                    String enabledText = enabledInput.getText().toString().trim();
-
-                    if (code.isEmpty()) {
-                        Toast.makeText(this, "Building code is required.", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-
-                    if (!enabledText.equalsIgnoreCase("true") && !enabledText.equalsIgnoreCase("false")) {
-                        Toast.makeText(this, "Enter true or false only.", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-
-                    boolean enabled = Boolean.parseBoolean(enabledText);
-
-                    userRepository.updateBuildingCodeEnabled(code, enabled, new UserRepository.FirestoreCallback() {
-                        @Override
-                        public void onSuccess() {
-                            Toast.makeText(AdminActivity.this, "Building code updated.", Toast.LENGTH_SHORT).show();
-                            loadAllBuildingCodes();
-                        }
-
-                        @Override
-                        public void onFailure(String errorMessage) {
-                            Toast.makeText(AdminActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
-    }
-
-    private void showDeleteBuildingCodeDialog() {
-        final EditText codeInput = new EditText(this);
-        codeInput.setHint("Enter building code");
-
-        new AlertDialog.Builder(this)
-                .setTitle("Delete Building Code")
-                .setView(codeInput)
-                .setPositiveButton("Delete", (dialog, which) -> {
-                    String code = codeInput.getText().toString().trim().toUpperCase(Locale.ROOT);
-
-                    if (code.isEmpty()) {
-                        Toast.makeText(this, "Building code is required.", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-
-                    userRepository.deleteBuildingCode(code, new UserRepository.FirestoreCallback() {
-                        @Override
-                        public void onSuccess() {
-                            Toast.makeText(AdminActivity.this, "Building code deleted.", Toast.LENGTH_SHORT).show();
-                            loadAllBuildingCodes();
-                        }
-
-                        @Override
-                        public void onFailure(String errorMessage) {
-                            Toast.makeText(AdminActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
-    }
     private void redirectToLogin() {
         startActivity(new Intent(AdminActivity.this, LoginActivity.class));
         finish();

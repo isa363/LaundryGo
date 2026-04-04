@@ -3,6 +3,8 @@ package com.example.laundryproject.auth;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
@@ -19,17 +21,22 @@ import com.example.laundryproject.util.ValidationUtils;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseUser;
 
+import java.util.List;
+
 public class RegisterActivity extends AppCompatActivity {
 
     private static final String ADMIN_KEY = "ADMIN123";
 
     private EditText emailEditText, passwordEditText, aptNumberEditText, adminKeyEditText, buildingCodeEditText;
+    private AutoCompleteTextView buildingSelector;
     private Button registerButton;
     private TextView toLogin;
     private RadioGroup accountTypeGroup;
+
     private TextInputLayout adminKeyInputLayout;
     private TextInputLayout aptNumberInputLayout;
     private TextInputLayout buildingCodeInputLayout;
+    private TextInputLayout buildingSelectorLayout;
 
     private AuthManager authManager;
     private UserRepository userRepository;
@@ -48,18 +55,24 @@ public class RegisterActivity extends AppCompatActivity {
         adminKeyEditText = findViewById(R.id.register_adminKeyEditText);
         buildingCodeEditText = findViewById(R.id.register_buildingCodeEditText);
 
+        buildingSelector = findViewById(R.id.register_buildingSelector);
+
         adminKeyInputLayout = findViewById(R.id.register_adminKeyInputLayout);
         aptNumberInputLayout = findViewById(R.id.register_aptNumberInputLayout);
         buildingCodeInputLayout = findViewById(R.id.register_buildingCodeInputLayout);
+        buildingSelectorLayout = findViewById(R.id.register_buildingSelectorLayout);
 
         accountTypeGroup = findViewById(R.id.register_accountTypeRadioGroup);
         registerButton = findViewById(R.id.register_registerButton);
         toLogin = findViewById(R.id.loginRedirectText);
 
-        // Default state = Regular selected
+        // Default state = Regular user
         adminKeyInputLayout.setVisibility(View.GONE);
         aptNumberInputLayout.setVisibility(View.VISIBLE);
         buildingCodeInputLayout.setVisibility(View.VISIBLE);
+        buildingSelectorLayout.setVisibility(View.VISIBLE);
+
+        loadBuildingNames();
 
         accountTypeGroup.setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.register_adminRadioButton) {
@@ -86,12 +99,34 @@ public class RegisterActivity extends AppCompatActivity {
         registerButton.setOnClickListener(v -> attemptRegister());
     }
 
+    private void loadBuildingNames() {
+        userRepository.getAllBuildings(new UserRepository.BuildingListCallback() {
+            @Override
+            public void onSuccess(List<String> buildingNames) {
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                        RegisterActivity.this,
+                        android.R.layout.simple_dropdown_item_1line,
+                        buildingNames
+                );
+                buildingSelector.setAdapter(adapter);
+            }
+
+            @Override
+            public void onFailure(String errorMessage) {
+                Toast.makeText(RegisterActivity.this,
+                        "Could not load buildings: " + errorMessage,
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     private void attemptRegister() {
         String email = emailEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString();
         String aptNumber = aptNumberEditText.getText().toString().trim();
         String adminKey = adminKeyEditText.getText().toString().trim();
-        String buildingCode = buildingCodeEditText.getText().toString().trim().toUpperCase();
+        String buildingCode = buildingCodeEditText.getText().toString().trim();
+        String selectedBuilding = buildingSelector.getText().toString().trim();
 
         int selectedId = accountTypeGroup.getCheckedRadioButtonId();
         RadioButton selectedRadioButton = findViewById(selectedId);
@@ -110,53 +145,66 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        if (accountType.equals("Regular") && !ValidationUtils.isNotEmpty(aptNumber)) {
-            Toast.makeText(this, "Apartment number is required", Toast.LENGTH_SHORT).show();
+        if (selectedBuilding.isEmpty()) {
+            Toast.makeText(this, "Please select a building", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        if (accountType.equals("Regular") && !ValidationUtils.isNotEmpty(buildingCode)) {
-            Toast.makeText(this, "Building code is required", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        if (accountType.equals("Regular")) {
+            if (!ValidationUtils.isNotEmpty(aptNumber)) {
+                Toast.makeText(this, "Apartment number is required", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-        if (accountType.equals("Admin") && !adminKey.equals(ADMIN_KEY)) {
-            Toast.makeText(this, "Invalid admin key", Toast.LENGTH_SHORT).show();
+            if (!ValidationUtils.isNotEmpty(buildingCode)) {
+                Toast.makeText(this, "Building code is required", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            validateBuildingCode(email, password, aptNumber, accountType, selectedBuilding, buildingCode);
             return;
         }
 
         if (accountType.equals("Admin")) {
-            registerUser(email, password, "", accountType, "");
-        } else {
-            checkBuildingCodeAndRegister(email, password, aptNumber, accountType, buildingCode);
+            if (!adminKey.equals(ADMIN_KEY)) {
+                Toast.makeText(this, "Invalid admin key", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            registerUser(email, password, "", accountType, selectedBuilding);
         }
     }
 
-    private void checkBuildingCodeAndRegister(String email, String password, String aptNumber, String accountType, String buildingCode) {
-        userRepository.checkBuildingCodeExists(buildingCode, new UserRepository.BuildingCodeCheckCallback() {
+    private void validateBuildingCode(String email, String password, String aptNumber,
+                                      String accountType, String buildingName, String enteredCode) {
+
+        userRepository.getBuildingCode(buildingName, new UserRepository.BuildingCodeFetchCallback() {
             @Override
-            public void onResult(boolean exists) {
-                if (!exists) {
+            public void onSuccess(String correctCode) {
+
+                if (!enteredCode.equals(correctCode)) {
                     Toast.makeText(RegisterActivity.this,
-                            "Invalid or disabled building code",
+                            "Incorrect building code for selected building",
                             Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                checkApartmentAndRegister(email, password, aptNumber, accountType, buildingCode);
+                checkApartmentAndRegister(email, password, aptNumber, accountType, buildingName);
             }
 
             @Override
             public void onFailure(String errorMessage) {
                 Toast.makeText(RegisterActivity.this,
-                        "Could not verify building code: " + errorMessage,
+                        "Could not verify building: " + errorMessage,
                         Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void checkApartmentAndRegister(String email, String password, String aptNumber, String accountType, String buildingCode) {
-        userRepository.checkApartmentExists(buildingCode, aptNumber, new UserRepository.ApartmentCheckCallback() {
+    private void checkApartmentAndRegister(String email, String password, String aptNumber,
+                                           String accountType, String buildingName) {
+
+        userRepository.checkApartmentExists(buildingName, aptNumber, new UserRepository.ApartmentCheckCallback() {
             @Override
             public void onResult(boolean exists) {
                 if (exists) {
@@ -166,7 +214,7 @@ public class RegisterActivity extends AppCompatActivity {
                     return;
                 }
 
-                registerUser(email, password, aptNumber, accountType, buildingCode);
+                registerUser(email, password, aptNumber, accountType, buildingName);
             }
 
             @Override
@@ -178,17 +226,20 @@ public class RegisterActivity extends AppCompatActivity {
         });
     }
 
-    private void registerUser(String email, String password, String aptNumber, String accountType, String buildingCode) {
+    private void registerUser(String email, String password, String aptNumber,
+                              String accountType, String buildingName) {
+
         authManager.registerUser(email, password, new AuthManager.AuthCallback() {
             @Override
             public void onSuccess(FirebaseUser firebaseUser) {
-                //User user = new User(email, aptNumber, true, accountType, buildingCode);
+
                 String defaultUsername = email.contains("@") ? email.split("@")[0] : email;
-                User user = new User(email, aptNumber, true, accountType, buildingCode, defaultUsername);
+                User user = new User(email, aptNumber, true, accountType, buildingName, defaultUsername);
 
                 userRepository.saveUser(firebaseUser.getUid(), user, new UserRepository.FirestoreCallback() {
                     @Override
                     public void onSuccess() {
+
                         if (accountType.equals("Admin")) {
                             Toast.makeText(RegisterActivity.this,
                                     "Admin registration successful.",

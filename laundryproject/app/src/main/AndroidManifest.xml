@@ -15,6 +15,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Laundryproject">
         <activity
+            android:name=".home.AdminViewMachinesActivity"
+            android:exported="false" />
+        <activity
             android:name=".home.AdminViewUsersActivity"
             android:exported="false" />
         <activity
