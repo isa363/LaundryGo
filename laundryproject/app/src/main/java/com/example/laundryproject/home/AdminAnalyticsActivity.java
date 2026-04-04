@@ -8,6 +8,16 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.laundryproject.R;
+import com.github.mikephil.charting.charts.BarChart;
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.data.BarData;
+import com.github.mikephil.charting.data.BarDataSet;
+import com.github.mikephil.charting.data.BarEntry;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -25,9 +35,9 @@ import java.util.TreeMap;
 public class AdminAnalyticsActivity extends AppCompatActivity {
 
     private TextView tvTotalRevenue, tvTotalCycles, tvPeakHour;
-    private com.github.mikephil.charting.charts.BarChart barChartRevenue;
-    private com.github.mikephil.charting.charts.BarChart barChartPeakHours;
-    private com.github.mikephil.charting.charts.LineChart lineChartMonthly;
+    private BarChart barChartRevenue;
+    private BarChart barChartPeakHours;
+    private LineChart lineChartMonthly;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -145,8 +155,7 @@ public class AdminAnalyticsActivity extends AppCompatActivity {
         barChartRevenue.getAxisRight().setEnabled(false);
         barChartRevenue.getLegend().setEnabled(false);
         barChartRevenue.getAxisLeft().setAxisMinimum(0f);
-        barChartRevenue.getXAxis().setPosition(
-            com.github.mikephil.charting.components.XAxis.XAxisPosition.BOTTOM);
+        barChartRevenue.getXAxis().setPosition(XAxis.XAxisPosition.BOTTOM);
         barChartRevenue.getXAxis().setGranularity(1f);
         barChartRevenue.getXAxis().setTextColor(Color.parseColor("#888888"));
         barChartRevenue.getAxisLeft().setTextColor(Color.parseColor("#888888"));
@@ -157,8 +166,7 @@ public class AdminAnalyticsActivity extends AppCompatActivity {
         barChartPeakHours.getAxisRight().setEnabled(false);
         barChartPeakHours.getLegend().setEnabled(false);
         barChartPeakHours.getAxisLeft().setAxisMinimum(0f);
-        barChartPeakHours.getXAxis().setPosition(
-            com.github.mikephil.charting.components.XAxis.XAxisPosition.BOTTOM);
+        barChartPeakHours.getXAxis().setPosition(XAxis.XAxisPosition.BOTTOM);
         barChartPeakHours.getXAxis().setGranularity(1f);
         barChartPeakHours.getXAxis().setTextColor(Color.parseColor("#888888"));
         barChartPeakHours.getAxisLeft().setTextColor(Color.parseColor("#888888"));
@@ -169,8 +177,7 @@ public class AdminAnalyticsActivity extends AppCompatActivity {
         lineChartMonthly.getAxisRight().setEnabled(false);
         lineChartMonthly.getLegend().setEnabled(false);
         lineChartMonthly.getAxisLeft().setAxisMinimum(0f);
-        lineChartMonthly.getXAxis().setPosition(
-            com.github.mikephil.charting.components.XAxis.XAxisPosition.BOTTOM);
+        lineChartMonthly.getXAxis().setPosition(XAxis.XAxisPosition.BOTTOM);
         lineChartMonthly.getXAxis().setGranularity(1f);
         lineChartMonthly.getXAxis().setTextColor(Color.parseColor("#888888"));
         lineChartMonthly.getAxisLeft().setTextColor(Color.parseColor("#888888"));
@@ -178,7 +185,7 @@ public class AdminAnalyticsActivity extends AppCompatActivity {
     }
 
     private void updateRevenueChart(Map<String, Double> revenuePerMachine) {
-        List<com.github.mikephil.charting.data.BarEntry> entries = new ArrayList<>();
+        List<BarEntry> entries = new ArrayList<>();
         final List<String> labels = new ArrayList<>();
         int i = 0;
         for (Map.Entry<String, Double> e : revenuePerMachine.entrySet()) {
@@ -189,49 +196,38 @@ public class AdminAnalyticsActivity extends AppCompatActivity {
         }
         if (entries.isEmpty()) return;
 
-        com.github.mikephil.charting.data.BarDataSet dataSet =
-                new com.github.mikephil.charting.data.BarDataSet(
-                        entries, "Revenue per Machine");
+        BarDataSet dataSet = new BarDataSet(entries, "Revenue per Machine");
         dataSet.setColor(Color.parseColor("#1a56a0"));
         dataSet.setValueTextColor(Color.parseColor("#1A1A1A"));
         dataSet.setValueTextSize(10f);
 
-        barChartRevenue.getXAxis().setValueFormatter(
-                new com.github.mikephil.charting.formatter.IndexAxisValueFormatter(labels));
-        barChartRevenue.setData(
-                new com.github.mikephil.charting.data.BarData(dataSet));
+        barChartRevenue.getXAxis().setValueFormatter(new IndexAxisValueFormatter(labels));
+        barChartRevenue.setData(new BarData(dataSet));
         barChartRevenue.invalidate();
     }
 
     private void updatePeakHoursChart(Map<Integer, Integer> cyclesPerHour) {
-        List<com.github.mikephil.charting.data.BarEntry> entries = new ArrayList<>();
+        List<BarEntry> entries = new ArrayList<>();
         for (int h = 0; h < 24; h++) {
-            entries.add(new com.github.mikephil.charting.data.BarEntry(
-                    h, cyclesPerHour.getOrDefault(h, 0)));
+            entries.add(new BarEntry( h, cyclesPerHour.getOrDefault(h, 0)));
         }
 
-        com.github.mikephil.charting.data.BarDataSet dataSet =
-                new com.github.mikephil.charting.data.BarDataSet(
-                        entries, "Cycles per Hour");
+       BarDataSet dataSet =  new BarDataSet(entries, "Cycles per Hour");
         dataSet.setColor(Color.parseColor("#FF9800"));
         dataSet.setDrawValues(false);
 
-        barChartPeakHours.setData(
-                new com.github.mikephil.charting.data.BarData(dataSet));
+        barChartPeakHours.setData(new BarData(dataSet));
         barChartPeakHours.invalidate();
     }
 
     private void updateMonthlyChart(Map<Integer, Double> dailyRevenue) {
-        List<com.github.mikephil.charting.data.Entry> entries = new ArrayList<>();
+        List<Entry> entries = new ArrayList<>();
         for (Map.Entry<Integer, Double> e : dailyRevenue.entrySet()) {
-            entries.add(new com.github.mikephil.charting.data.Entry(
-                    e.getKey(), e.getValue().floatValue()));
+            entries.add(new Entry(e.getKey(), e.getValue().floatValue()));
         }
         if (entries.isEmpty()) return;
 
-        com.github.mikephil.charting.data.LineDataSet dataSet =
-                new com.github.mikephil.charting.data.LineDataSet(
-                        entries, "Daily Revenue");
+        LineDataSet dataSet = new LineDataSet(entries, "Daily Revenue");
         dataSet.setColor(Color.parseColor("#1a56a0"));
         dataSet.setLineWidth(2f);
         dataSet.setDrawCircles(true);
@@ -241,11 +237,9 @@ public class AdminAnalyticsActivity extends AppCompatActivity {
         dataSet.setDrawFilled(true);
         dataSet.setFillColor(Color.parseColor("#1a56a0"));
         dataSet.setFillAlpha(30);
-        dataSet.setMode(
-            com.github.mikephil.charting.data.LineDataSet.Mode.CUBIC_BEZIER);
+        dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
 
-        lineChartMonthly.setData(
-                new com.github.mikephil.charting.data.LineData(dataSet));
+        lineChartMonthly.setData( new LineData(dataSet));
         lineChartMonthly.invalidate();
     }
 
