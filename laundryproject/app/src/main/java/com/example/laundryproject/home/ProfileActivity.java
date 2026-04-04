@@ -19,6 +19,7 @@ import com.example.laundryproject.data.UserRepository;
 import com.example.laundryproject.dialogs.EmailDialog;
 import com.example.laundryproject.dialogs.PassDialog;
 import com.example.laundryproject.model.User;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.firebase.auth.FirebaseUser;
 
