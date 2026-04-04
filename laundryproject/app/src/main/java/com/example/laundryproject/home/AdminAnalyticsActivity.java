@@ -189,8 +189,7 @@ public class AdminAnalyticsActivity extends AppCompatActivity {
         final List<String> labels = new ArrayList<>();
         int i = 0;
         for (Map.Entry<String, Double> e : revenuePerMachine.entrySet()) {
-            entries.add(new com.github.mikephil.charting.data.BarEntry(
-                    i, e.getValue().floatValue()));
+            entries.add(new BarEntry(i, e.getValue().floatValue()));
             labels.add(e.getKey());
             i++;
         }
