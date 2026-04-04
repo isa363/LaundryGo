@@ -243,7 +243,27 @@
                 android:textColor="@android:color/white"
                 android:backgroundTint="@color/primary_green" />
 
+            <Button
+                android:id="@+id/btnInsights"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="My Spending Insights"
+                android:textAllCaps="false"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                android:backgroundTint="@color/primary_green" />
+
         </LinearLayout>
     </ScrollView>
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+    android:id="@+id/bottomNav"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#FFFFFF"
+    app:menu="@menu/bottom_nav_menu"
+    app:itemIconTint="@color/bottom_nav_colors"
+    app:itemTextColor="@color/bottom_nav_colors"/>
 
 </LinearLayout>
