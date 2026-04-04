@@ -201,6 +201,14 @@
                     android:textSize="13sp" />
 
                 <com.google.android.material.button.MaterialButton
+                    android:id="@+id/admin_analyticsButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="Analytics Dashboard"
+                    app:backgroundTint="#1a56a0"/>
+
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/admin_logoutButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
