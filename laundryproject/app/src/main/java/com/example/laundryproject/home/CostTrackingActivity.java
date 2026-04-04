@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.laundryproject.R;
+import com.example.laundryproject.auth.AuthManager;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.data.Entry;
@@ -25,6 +26,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.text.SimpleDateFormat;                                             
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -46,6 +48,7 @@ public class CostTrackingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cost_tracking);
 
+      authManager = new AuthManager();
         
         MaterialToolbar toolbar = findViewById(R.id.costToolbar);
         setSupportActionBar(toolbar);
