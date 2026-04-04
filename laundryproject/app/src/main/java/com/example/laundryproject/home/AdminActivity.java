@@ -120,11 +120,13 @@ public class AdminActivity extends AppCompatActivity {
 
         viewUsersButton.setOnClickListener(v -> {
             Intent intent = new Intent(AdminActivity.this, AdminViewUsersActivity.class);
+            intent.putExtra("adminBuilding", adminBuildingName);
             startActivity(intent);
         });
 
         viewMachinesButton.setOnClickListener(v -> {
             Intent intent = new Intent(AdminActivity.this, AdminViewMachinesActivity.class);
+            intent.putExtra("adminBuilding", adminBuildingName);
             startActivity(intent);
         });
 

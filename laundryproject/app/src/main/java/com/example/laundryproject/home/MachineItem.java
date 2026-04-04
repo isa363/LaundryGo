@@ -2,23 +2,42 @@ package com.example.laundryproject.home;
 
 public class MachineItem {
 
-    public String machineId;
-    public String machineName;
-    public String state;
-    public Long   epochStart;
-    public String timestamp;
-    public long   elapsedSeconds;
-    public long   lastUpdatedAt;
+    public String machineId = "";
+    public String machineName = "";
+    public String state = "DISCONNECTED";
+    public Long epochStart;
+    public String timestamp = "";
+    public double price = 0.0;
 
-    public MachineItem(String machineId, String machineName,
-                       String state, Long epochStart, String timestamp) {
-        this.machineId      = machineId;
-        this.machineName    = machineName;
-        this.state          = state;
-        this.epochStart     = epochStart;
-        this.timestamp      = timestamp;
-        this.elapsedSeconds = 0;
-        this.lastUpdatedAt  = System.currentTimeMillis();
+    public long elapsedSeconds = 0L;
+    public long lastUpdatedAt;
+
+    public String buildingCode  = ""; // NEW FIELD
+
+    public MachineItem() {}
+
+    // BACKWARD COMPATIBLE CONSTRUCTOR
+    public MachineItem(String machineID, String machineName,
+                       String state, long epoch, String timestamp) {
+
+        this.machineId = machineID != null ? machineID : "";
+        this.machineName = machineName != null ? machineName : "";
+        this.state = state != null ? state : "DISCONNECTED";
+        this.epochStart = epoch;
+        this.timestamp = timestamp != null ? timestamp : "";
     }
 
+    // FULL CONSTRUCTOR
+    public MachineItem(String machineID, String machineName,
+                       String state, long epoch, String timestamp,
+                       double price, String buildingName) {
+
+        this.machineId = machineID != null ? machineID : "";
+        this.machineName = machineName != null ? machineName : "";
+        this.state = state != null ? state : "DISCONNECTED";
+        this.epochStart = epoch;
+        this.timestamp = timestamp != null ? timestamp : "";
+        this.price = price;
+        this.buildingCode  = buildingName != null ? buildingName : "";
+    }
 }
