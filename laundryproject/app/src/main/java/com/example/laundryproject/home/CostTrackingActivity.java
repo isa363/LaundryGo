@@ -11,6 +11,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.laundryproject.R;
 import com.example.laundryproject.auth.AuthManager;
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -31,7 +36,7 @@ import java.util.TreeMap;
 public class CostTrackingActivity extends AppCompatActivity {
 
     private TextView tvMonthlyTotal, tvSessionCount, tvAvgCost;
-    private com.github.mikephil.charting.charts.LineChart lineChart;
+    private LineChart lineChart;
     private RecyclerView recyclerBreakdown;
     private HistoryAdapter adapter;
     private List<HistoryItem> historyList = new ArrayList<>();
@@ -121,8 +126,7 @@ public class CostTrackingActivity extends AppCompatActivity {
                                 dailySpending.put(day,
                                     dailySpending.getOrDefault(day, 0.0) + c);
 
-                                historyList.add(0,
-                                    new HistoryItem(machineName, epoch, d, c));
+                                historyList.add(0, new HistoryItem(machineName, epoch, d, c));
                             }
                         }
                     }
@@ -156,8 +160,7 @@ public class CostTrackingActivity extends AppCompatActivity {
         lineChart.setScaleEnabled(true);
         lineChart.setDrawGridBackground(false);
         lineChart.getAxisRight().setEnabled(false);
-        lineChart.getXAxis().setPosition(
-            com.github.mikephil.charting.components.XAxis.XAxisPosition.BOTTOM);
+        lineChart.getXAxis().setPosition(XAxis.XAxisPosition.BOTTOM);
         lineChart.getXAxis().setGranularity(1f);
         lineChart.getAxisLeft().setAxisMinimum(0f);
         lineChart.getXAxis().setTextColor(Color.parseColor("#888888"));
@@ -166,18 +169,15 @@ public class CostTrackingActivity extends AppCompatActivity {
     }
 
     private void updateChart(Map<Integer, Double> dailySpending) {
-        List<com.github.mikephil.charting.data.Entry> entries = new ArrayList<>();
+        List<.Entry> entries = new ArrayList<>();
 
         for (Map.Entry<Integer, Double> entry : dailySpending.entrySet()) {
-            entries.add(new com.github.mikephil.charting.data.Entry(
-                    entry.getKey(), entry.getValue().floatValue()));
+            entries.add(new Entry(entry.getKey(), entry.getValue().floatValue()));
         }
 
         if (entries.isEmpty()) return;
 
-        com.github.mikephil.charting.data.LineDataSet dataSet =
-                new com.github.mikephil.charting.data.LineDataSet(
-                        entries, "Daily Spending");
+        LineDataSet dataSet = new LineDataSet(entries, "Daily Spending");
 
         // Stock chart style
         dataSet.setColor(Color.parseColor("#1a56a0"));
@@ -189,9 +189,9 @@ public class CostTrackingActivity extends AppCompatActivity {
         dataSet.setDrawFilled(true);
         dataSet.setFillColor(Color.parseColor("#1a56a0"));
         dataSet.setFillAlpha(30);
-        dataSet.setMode(com.github.mikephil.charting.data.LineDataSet.Mode.CUBIC_BEZIER);
+        dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
 
-        lineChart.setData(new com.github.mikephil.charting.data.LineData(dataSet));
+        lineChart.setData(new LineData(dataSet));
         lineChart.invalidate();
     }
 
