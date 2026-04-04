@@ -25,12 +25,8 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -50,8 +46,6 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    private DatabaseReference machineRef;
-
     private RecyclerView recyclerMachines;
     private TextView tvWelcome, tvAvatar;
 
@@ -62,10 +56,9 @@ public class MainActivity extends AppCompatActivity {
     private Handler timerHandler = new Handler(Looper.getMainLooper());
     private Runnable timerRunnable;
 
-    // Stale data detection
     private long lastDataReceivedAt = 0;
-    private static final long STALE_TIMEOUT_MS  = 120000;  // 2 minutes
-    private static final long CHECK_INTERVAL_MS = 5000;    // check every 5 seconds
+    private static final long STALE_TIMEOUT_MS  = 120000;
+    private static final long CHECK_INTERVAL_MS = 5000;
     private final Handler staleHandler = new Handler(Looper.getMainLooper());
 
     private AuthManager authManager;
@@ -77,7 +70,6 @@ public class MainActivity extends AppCompatActivity {
             long now = System.currentTimeMillis();
             if (lastDataReceivedAt != 0 && now - lastDataReceivedAt > STALE_TIMEOUT_MS) {
                 for (MachineItem item : machineList) {
-                    // Only mark disconnected if it was RUNNING or unknown
                     if (!"AVAILABLE".equalsIgnoreCase(item.state)) {
                         item.state = "DISCONNECTED";
                     }
@@ -113,7 +105,6 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            // Check user type and enabled status from Firestore
             userRepository.getUser(refreshed.getUid(),
                     new UserRepository.LoadUserCallback() {
                         @Override
@@ -137,14 +128,12 @@ public class MainActivity extends AppCompatActivity {
                                     ? user.accountType.trim() : "";
 
                             if (accountType.equalsIgnoreCase("Admin")) {
-                                // Admins go to AdminActivity
                                 startActivity(new Intent(MainActivity.this,
                                         AdminActivity.class));
                                 finish();
                                 return;
                             }
 
-                            // Regular users see the laundry screen
                             setupUI(refreshed, user);
                         }
 
@@ -169,7 +158,6 @@ public class MainActivity extends AppCompatActivity {
         tvWelcome = findViewById(R.id.tvWelcome);
         tvAvatar  = findViewById(R.id.tvAvatar);
 
-        // Welcome text from email
         String email = firebaseUser.getEmail();
         if (email != null && !email.isEmpty()) {
             String username = email.split("@")[0];
@@ -178,7 +166,6 @@ public class MainActivity extends AppCompatActivity {
             tvAvatar.setText(initial);
         }
 
-        // RecyclerView
         recyclerMachines = findViewById(R.id.recyclerMachines);
         recyclerMachines.setLayoutManager(new LinearLayoutManager(this));
 
@@ -192,7 +179,6 @@ public class MainActivity extends AppCompatActivity {
         });
         recyclerMachines.setAdapter(adapter);
 
-        // Bottom navigation
         BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
         bottomNav.setSelectedItemId(R.id.nav_home);
         bottomNav.setOnItemSelectedListener(item -> {
@@ -203,7 +189,6 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
             if (id == R.id.nav_machines) return true;
-            //if (id == R.id.nav_account)  return true;
             if (id == R.id.nav_account) {
                 startActivity(new Intent(this, ProfileActivity.class));
                 return true;
@@ -221,10 +206,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-
-
-
-        // Listen to all machines
         FirebaseDatabase.getInstance()
                 .getReference("machines")
                 .addValueEventListener(new ValueEventListener() {
@@ -233,46 +214,47 @@ public class MainActivity extends AppCompatActivity {
                         machineList.clear();
 
                         for (DataSnapshot child : snapshot.getChildren()) {
+
+                            // FILTER BY USER BUILDING
+                            String building = child.child("buildingCode").getValue(String.class);
+                            if (building == null || !building.equals(user.buildingCode)) {
+                                continue;
+                            }
+
                             String id    = child.getKey();
-                            String state = child.child("state")
-                                    .getValue(String.class);
-                            String name  = child.child("machineName")
-                                    .getValue(String.class);
-                            Long   epoch = child.child("epoch")
-                                    .getValue(Long.class);
-                            String ts    = child.child("timestamp")
-                                    .getValue(String.class);
+                            String state = child.child("state").getValue(String.class);
+                            String name  = child.child("machineName").getValue(String.class);
+                            Long   epoch = child.child("epoch").getValue(Long.class);
+                            String ts    = child.child("timestamp").getValue(String.class);
 
                             if (state == null) state = "DISCONNECTED";
                             if (name  == null) name  = id;
+                            if (epoch == null) epoch = 0L;
 
-                            //Update the UI model list
                             MachineItem item = new MachineItem(id, name, state, epoch, ts);
                             item.lastUpdatedAt = System.currentTimeMillis();
                             machineList.add(item);
 
+                            String prev = previousStates.containsKey(id)
+                                    ? previousStates.get(id)
+                                    : "AVAILABLE";
 
-                            // Compare current and previous state
-                            String prev = previousStates.containsKey(id) ? previousStates.get(id) : "AVAILABLE";
+                            if ("RUNNING".equalsIgnoreCase(prev)
+                                    && "AVAILABLE".equalsIgnoreCase(state)) {
 
-                            // Notify only if user subscribed to this machine
-                            if ("RUNNING".equalsIgnoreCase(prev) && "AVAILABLE".equalsIgnoreCase(state)) {
-                                SharedPreferences prefs = getSharedPreferences( "notif_prefs", MODE_PRIVATE);
+                                SharedPreferences prefs = getSharedPreferences("notif_prefs", MODE_PRIVATE);
                                 boolean subscribed = prefs.getBoolean(id, false);
+
                                 if (subscribed) {
                                     showNotification(name + " is done!",
                                             "Your laundry is ready to pick up.");
-                                    // Reset subscription after notifying
                                     prefs.edit().putBoolean(id, false).apply();
                                 }
                             }
 
-                            //Save latest known state
                             previousStates.put(id, state);
-
-
                         }
-                        //Refresh recyclerview
+
                         adapter.notifyDataSetChanged();
                     }
 
@@ -280,7 +262,6 @@ public class MainActivity extends AppCompatActivity {
                     public void onCancelled(DatabaseError error) {}
                 });
 
-        // Timer loop
         timerRunnable = new Runnable() {
             @Override
             public void run() {
@@ -297,7 +278,6 @@ public class MainActivity extends AppCompatActivity {
         };
         timerHandler.post(timerRunnable);
 
-        // Stale data check
         staleHandler.post(staleCheckRunnable);
     }
 
@@ -356,5 +336,4 @@ public class MainActivity extends AppCompatActivity {
         startActivity(new Intent(this, LoginActivity.class));
         finish();
     }
-
 }
