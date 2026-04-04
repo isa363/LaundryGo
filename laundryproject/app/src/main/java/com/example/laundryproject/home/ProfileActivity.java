@@ -186,6 +186,10 @@ public class ProfileActivity extends AppCompatActivity
             dialog.show(getSupportFragmentManager(), "PasswordDialog");
         });
 
+            Button btnInsights = findViewById(R.id.btnInsights);
+        btnInsights.setOnClickListener(v ->
+    startActivity(new Intent(ProfileActivity.this, CostTrackingActivity.class)));
+
             BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
 bottomNav.setSelectedItemId(R.id.nav_account);
 bottomNav.setOnItemSelectedListener(item -> {
