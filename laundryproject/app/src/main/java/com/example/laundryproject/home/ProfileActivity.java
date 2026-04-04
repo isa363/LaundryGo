@@ -185,6 +185,25 @@ public class ProfileActivity extends AppCompatActivity
             dialog.setPasswordUpdateListener(this);
             dialog.show(getSupportFragmentManager(), "PasswordDialog");
         });
+
+            BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
+bottomNav.setSelectedItemId(R.id.nav_account);
+bottomNav.setOnItemSelectedListener(item -> {
+    int id = item.getItemId();
+    if (id == R.id.nav_account) return true;
+    if (id == R.id.nav_home) {
+        startActivity(new Intent(this, MainActivity.class));
+        finish();
+        return true;
+    }
+    if (id == R.id.nav_history) {
+        startActivity(new Intent(this, HistoryActivity.class));
+        finish();
+        return true;
+    }
+    if (id == R.id.nav_machines) return true;
+    return false;
+});
     }
 
     private void saveUsername() {
