@@ -15,11 +15,13 @@ public class UserRepository {
 
     private final FirebaseFirestore db;
     private static final String USERS_COLLECTION = "users";
-    private static final String BUILDING_CODES_COLLECTION = "buildingCodes";
+    private static final String BUILDINGS_COLLECTION = "buildingCodes";
 
     public UserRepository() {
         db = FirebaseFirestore.getInstance();
     }
+
+    // -------------------- CALLBACK INTERFACES --------------------
 
     public interface FirestoreCallback {
         void onSuccess();
@@ -36,8 +38,13 @@ public class UserRepository {
         void onFailure(String errorMessage);
     }
 
-    public interface BuildingCodeCheckCallback {
-        void onResult(boolean exists);
+    public interface BuildingListCallback {
+        void onSuccess(List<String> buildingNames);
+        void onFailure(String errorMessage);
+    }
+
+    public interface BuildingCodeFetchCallback {
+        void onSuccess(String code);
         void onFailure(String errorMessage);
     }
 
@@ -46,10 +53,7 @@ public class UserRepository {
         void onFailure(String errorMessage);
     }
 
-    public interface LoadBuildingCodesCallback {
-        void onSuccess(List<BuildingCodeItem> buildingCodes);
-        void onFailure(String errorMessage);
-    }
+    // -------------------- DATA CLASSES --------------------
 
     public static class UserWithId {
         public String uid;
@@ -61,17 +65,19 @@ public class UserRepository {
         }
     }
 
-    public static class BuildingCodeItem {
-        public String code;
+    public static class BuildingItem {
         public String buildingName;
+        public String code;
         public boolean enabled;
 
-        public BuildingCodeItem(String code, String buildingName, boolean enabled) {
-            this.code = code;
+        public BuildingItem(String buildingName, String code, boolean enabled) {
             this.buildingName = buildingName;
+            this.code = code;
             this.enabled = enabled;
         }
     }
+
+    // -------------------- USER METHODS --------------------
 
     public void saveUser(String uid, User user, @NonNull FirestoreCallback callback) {
         db.collection(USERS_COLLECTION)
@@ -100,9 +106,9 @@ public class UserRepository {
                 ));
     }
 
-    public void checkApartmentExists(String buildingCode, String aptNumber, @NonNull ApartmentCheckCallback callback) {
+    public void checkApartmentExists(String buildingName, String aptNumber, @NonNull ApartmentCheckCallback callback) {
         db.collection(USERS_COLLECTION)
-                .whereEqualTo("buildingCode", buildingCode)
+                .whereEqualTo("buildingCode", buildingName)
                 .whereEqualTo("aptNumber", aptNumber)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots ->
@@ -112,23 +118,98 @@ public class UserRepository {
                 ));
     }
 
-    public void checkBuildingCodeExists(String buildingCode, @NonNull BuildingCodeCheckCallback callback) {
-        db.collection(BUILDING_CODES_COLLECTION)
-                .document(buildingCode)
+    // -------------------- BUILDING METHODS --------------------
+
+    /** Returns list of building names for dropdown */
+    public void getAllBuildings(@NonNull BuildingListCallback callback) {
+        db.collection(BUILDINGS_COLLECTION)
                 .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (!documentSnapshot.exists()) {
-                        callback.onResult(false);
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<String> buildings = new ArrayList<>();
+
+                    for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                        buildings.add(doc.getId());
+                    }
+
+                    callback.onSuccess(buildings);
+                })
+                .addOnFailureListener(e -> callback.onFailure(
+                        e.getMessage() != null ? e.getMessage() : "Failed to load buildings."
+                ));
+    }
+
+    /** Fetch building code for selected building */
+    public void getBuildingCode(String buildingName, @NonNull BuildingCodeFetchCallback callback) {
+        db.collection(BUILDINGS_COLLECTION)
+                .document(buildingName)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (!doc.exists()) {
+                        callback.onFailure("Building not found");
                         return;
                     }
 
-                    Boolean enabled = documentSnapshot.getBoolean("enabled");
-                    callback.onResult(Boolean.TRUE.equals(enabled));
+                    String code = doc.getString("code");
+                    callback.onSuccess(code);
                 })
                 .addOnFailureListener(e -> callback.onFailure(
-                        e.getMessage() != null ? e.getMessage() : "Failed to check building code."
+                        e.getMessage() != null ? e.getMessage() : "Failed to fetch building code."
                 ));
     }
+
+    /** Create a building (document ID = buildingName) */
+    public void createBuilding(String buildingName, String code, boolean enabled, @NonNull FirestoreCallback callback) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("buildingName", buildingName);
+        data.put("code", code);
+        data.put("enabled", enabled);
+
+        db.collection(BUILDINGS_COLLECTION)
+                .document(buildingName)
+                .set(data)
+                .addOnSuccessListener(unused -> callback.onSuccess())
+                .addOnFailureListener(e -> callback.onFailure(
+                        e.getMessage() != null ? e.getMessage() : "Failed to create building."
+                ));
+    }
+
+    /** Edit building info */
+    public void editBuilding(String buildingName, String code, boolean enabled, @NonNull FirestoreCallback callback) {
+        db.collection(BUILDINGS_COLLECTION)
+                .document(buildingName)
+                .update(
+                        "code", code,
+                        "enabled", enabled
+                )
+                .addOnSuccessListener(unused -> callback.onSuccess())
+                .addOnFailureListener(e -> callback.onFailure(
+                        e.getMessage() != null ? e.getMessage() : "Failed to update building."
+                ));
+    }
+
+    /** Enable/disable building */
+    public void updateBuildingEnabled(String buildingName, boolean enabled, @NonNull FirestoreCallback callback) {
+        db.collection(BUILDINGS_COLLECTION)
+                .document(buildingName)
+                .update("enabled", enabled)
+                .addOnSuccessListener(unused -> callback.onSuccess())
+                .addOnFailureListener(e -> callback.onFailure(
+                        e.getMessage() != null ? e.getMessage() : "Failed to update building status."
+                ));
+    }
+
+    /** Delete building */
+    public void deleteBuilding(String buildingName, @NonNull FirestoreCallback callback) {
+        db.collection(BUILDINGS_COLLECTION)
+                .document(buildingName)
+                .delete()
+                .addOnSuccessListener(unused -> callback.onSuccess())
+                .addOnFailureListener(e -> callback.onFailure(
+                        e.getMessage() != null ? e.getMessage() : "Failed to delete building."
+                ));
+    }
+
+    // -------------------- ADMIN PANEL: LOAD ALL USERS --------------------
 
     public void getAllUsers(@NonNull LoadUsersCallback callback) {
         db.collection(USERS_COLLECTION)
@@ -149,7 +230,6 @@ public class UserRepository {
                         e.getMessage() != null ? e.getMessage() : "Failed to load users."
                 ));
     }
-
     public void updateUserField(String uid, String field, Object value, @NonNull FirestoreCallback callback) {
         db.collection(USERS_COLLECTION)
                 .document(uid)
@@ -159,17 +239,6 @@ public class UserRepository {
                         e.getMessage() != null ? e.getMessage() : "Failed to update user."
                 ));
     }
-
-    public void updateUser(String uid, User user, @NonNull FirestoreCallback callback) {
-        db.collection(USERS_COLLECTION)
-                .document(uid)
-                .set(user)
-                .addOnSuccessListener(unused -> callback.onSuccess())
-                .addOnFailureListener(e -> callback.onFailure(
-                        e.getMessage() != null ? e.getMessage() : "Failed to update user."
-                ));
-    }
-
     public void deleteUserDocument(String uid, @NonNull FirestoreCallback callback) {
         db.collection(USERS_COLLECTION)
                 .document(uid)
@@ -177,79 +246,6 @@ public class UserRepository {
                 .addOnSuccessListener(unused -> callback.onSuccess())
                 .addOnFailureListener(e -> callback.onFailure(
                         e.getMessage() != null ? e.getMessage() : "Failed to delete user."
-                ));
-    }
-
-    public void createBuildingCode(String code, String buildingName, boolean enabled, @NonNull FirestoreCallback callback) {
-        Map<String, Object> data = new HashMap<>();
-        data.put("code", code);
-        data.put("buildingName", buildingName);
-        data.put("enabled", enabled);
-
-        db.collection(BUILDING_CODES_COLLECTION)
-                .document(code)
-                .set(data)
-                .addOnSuccessListener(unused -> callback.onSuccess())
-                .addOnFailureListener(e -> callback.onFailure(
-                        e.getMessage() != null ? e.getMessage() : "Failed to save building code."
-                ));
-    }
-
-    public void editBuildingCode(String code, String buildingName, boolean enabled, @NonNull FirestoreCallback callback) {
-        db.collection(BUILDING_CODES_COLLECTION)
-                .document(code)
-                .update(
-                        "buildingName", buildingName,
-                        "enabled", enabled
-                )
-                .addOnSuccessListener(unused -> callback.onSuccess())
-                .addOnFailureListener(e -> callback.onFailure(
-                        e.getMessage() != null ? e.getMessage() : "Failed to edit building code."
-                ));
-    }
-
-    public void updateBuildingCodeEnabled(String code, boolean enabled, @NonNull FirestoreCallback callback) {
-        db.collection(BUILDING_CODES_COLLECTION)
-                .document(code)
-                .update("enabled", enabled)
-                .addOnSuccessListener(unused -> callback.onSuccess())
-                .addOnFailureListener(e -> callback.onFailure(
-                        e.getMessage() != null ? e.getMessage() : "Failed to update building code."
-                ));
-    }
-
-    public void deleteBuildingCode(String code, @NonNull FirestoreCallback callback) {
-        db.collection(BUILDING_CODES_COLLECTION)
-                .document(code)
-                .delete()
-                .addOnSuccessListener(unused -> callback.onSuccess())
-                .addOnFailureListener(e -> callback.onFailure(
-                        e.getMessage() != null ? e.getMessage() : "Failed to delete building code."
-                ));
-    }
-
-    public void getAllBuildingCodes(@NonNull LoadBuildingCodesCallback callback) {
-        db.collection(BUILDING_CODES_COLLECTION)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<BuildingCodeItem> buildingCodes = new ArrayList<>();
-
-                    for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
-                        String code = document.getId();
-                        String buildingName = document.getString("buildingName");
-                        Boolean enabled = document.getBoolean("enabled");
-
-                        buildingCodes.add(new BuildingCodeItem(
-                                code,
-                                buildingName != null ? buildingName : "",
-                                Boolean.TRUE.equals(enabled)
-                        ));
-                    }
-
-                    callback.onSuccess(buildingCodes);
-                })
-                .addOnFailureListener(e -> callback.onFailure(
-                        e.getMessage() != null ? e.getMessage() : "Failed to load building codes."
                 ));
     }
 }
