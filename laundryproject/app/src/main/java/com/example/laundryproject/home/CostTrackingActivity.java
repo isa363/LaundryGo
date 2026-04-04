@@ -10,7 +10,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.laundryproject.R;
-import com.example.laundryproject.auth.AuthManager;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.data.Entry;
@@ -23,11 +22,10 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.text.SimpleDateFormat;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -48,8 +46,7 @@ public class CostTrackingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cost_tracking);
 
-        authManager = new AuthManager();
-
+        
         MaterialToolbar toolbar = findViewById(R.id.costToolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
@@ -169,7 +166,7 @@ public class CostTrackingActivity extends AppCompatActivity {
     }
 
     private void updateChart(Map<Integer, Double> dailySpending) {
-        List<.Entry> entries = new ArrayList<>();
+        List<Entry> entries = new ArrayList<>();
 
         for (Map.Entry<Integer, Double> entry : dailySpending.entrySet()) {
             entries.add(new Entry(entry.getKey(), entry.getValue().floatValue()));
