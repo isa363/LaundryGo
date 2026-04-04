@@ -17,6 +17,7 @@ import com.example.laundryproject.R;
 import com.example.laundryproject.auth.AuthManager;
 import com.example.laundryproject.auth.LoginActivity;
 import com.example.laundryproject.data.UserRepository;
+import com.example.laundryproject.home.AdminAnalyticsActivity;
 import com.example.laundryproject.model.User;
 import com.example.laundryproject.util.ValidationUtils;
 import com.google.firebase.auth.FirebaseUser;
@@ -42,6 +43,7 @@ public class AdminActivity extends AppCompatActivity {
     private Button editBuildingCodeButton;
     private Button toggleBuildingCodeButton;
     private Button deleteBuildingCodeButton;
+    private Button analyticsButton;
 
     private TextView usersTextView;
     private TextView buildingCodesTextView;
@@ -154,6 +156,10 @@ public class AdminActivity extends AppCompatActivity {
         editBuildingCodeButton.setOnClickListener(v -> showEditBuildingCodeDialog());
         toggleBuildingCodeButton.setOnClickListener(v -> showToggleBuildingCodeDialog());
         deleteBuildingCodeButton.setOnClickListener(v -> showDeleteBuildingCodeDialog());
+
+        analyticsButton = findViewById(R.id.admin_analyticsButton);
+       analyticsButton.setOnClickListener(v ->
+       startActivity(new Intent(AdminActivity.this, AdminAnalyticsActivity.class)));
 
         loadAllUsers();
         loadAllBuildingCodes();
