@@ -81,6 +81,26 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".home.MainActivity" />
         </activity>
+
+
+        <activity
+            android:name=".home.CostTrackingActivity"
+            android:exported="false"
+            android:parentActivityName=".home.ProfileActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".home.ProfileActivity"/>
+        </activity>
+
+
+        <activity
+            android:name=".home.AdminAnalyticsActivity"
+            android:exported="false"
+            android:parentActivityName=".home.AdminActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".home.AdminActivity"/>
+        </activity>
     </application>
 
 </manifest>

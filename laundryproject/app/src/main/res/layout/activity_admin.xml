@@ -61,6 +61,17 @@
                     app:backgroundTint="#1a56a0" />
             </LinearLayout>
 
+            <!-- Analytics Dashboard button — APP-20 -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/admin_analyticsButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:text="Analytics Dashboard"
+                android:textColor="@android:color/white"
+                app:backgroundTint="#1a56a0"/>
+
+
             <!-- Building codes label -->
             <TextView
                 android:layout_width="wrap_content"

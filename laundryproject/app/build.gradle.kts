@@ -43,6 +43,9 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
 
+    // MPAndroidChart
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
     //FIREBASE
     implementation(platform("com.google.firebase:firebase-bom:34.10.0"))
     implementation("com.google.firebase:firebase-analytics")

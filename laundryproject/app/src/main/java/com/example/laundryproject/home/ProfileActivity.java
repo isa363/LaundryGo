@@ -20,6 +20,7 @@ import com.example.laundryproject.dialogs.EmailDialog;
 import com.example.laundryproject.dialogs.PassDialog;
 import com.example.laundryproject.model.User;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseUser;
 
 public class ProfileActivity extends AppCompatActivity
@@ -31,7 +32,7 @@ public class ProfileActivity extends AppCompatActivity
     private TextView viewEmail;
     private TextView apt;
     private TextView bldgcodeView;
-    private Button saveBtn;
+    private Button saveBtn, btnInsights;
 
     private LinearLayout emailRow;
     private LinearLayout passwordRow;
@@ -121,9 +122,11 @@ public class ProfileActivity extends AppCompatActivity
         apt = findViewById(R.id.apt);
         bldgcodeView = findViewById(R.id.bldgcodeView);
         saveBtn = findViewById(R.id.saveBtn);
+        btnInsights = findViewById(R.id.btnInsights);
 
         emailRow = findViewById(R.id.emailRow);
         passwordRow = findViewById(R.id.passwordRow);
+
     }
 
     private void setupToolbar() {
@@ -185,6 +188,30 @@ public class ProfileActivity extends AppCompatActivity
             dialog.setPasswordUpdateListener(this);
             dialog.show(getSupportFragmentManager(), "PasswordDialog");
         });
+
+        btnInsights.setOnClickListener(v ->
+                startActivity(new Intent(ProfileActivity.this, CostTrackingActivity.class)));
+
+
+        BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
+        bottomNav.setSelectedItemId(R.id.nav_account);
+        bottomNav.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_account) return true;
+            if (id == R.id.nav_home) {
+                startActivity(new Intent(this, MainActivity.class));
+                finish();
+                return true;
+            }
+            if (id == R.id.nav_history) {
+                startActivity(new Intent(this, HistoryActivity.class));
+                finish();
+                return true;
+            }
+            if (id == R.id.nav_machines) return true;
+            return false;
+        });
+
     }
 
     private void saveUsername() {

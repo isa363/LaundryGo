@@ -1,4 +1,5 @@
 package com.example.laundryproject.home; 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.widget.TextView;
@@ -9,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.laundryproject.R;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
@@ -43,6 +45,26 @@ public class HistoryActivity extends AppCompatActivity {
         recycler.setLayoutManager(new LinearLayoutManager(this));
         adapter = new HistoryAdapter(historyList);
         recycler.setAdapter(adapter);
+
+
+        BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
+        bottomNav.setSelectedItemId(R.id.nav_history);
+        bottomNav.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_history) return true;
+            if (id == R.id.nav_home) {
+                startActivity(new Intent(this, MainActivity.class));
+                finish();
+                return true;
+            }
+            if (id == R.id.nav_account) {
+                startActivity(new Intent(this, ProfileActivity.class));
+                finish();
+                return true;
+            }
+            if (id == R.id.nav_machines) return true;
+            return false;
+        });
 
         // Read history from all machines
         FirebaseDatabase.getInstance()

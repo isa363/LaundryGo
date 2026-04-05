@@ -206,6 +206,9 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        // Add dummy data for demo if history is empty
+        addDummyDataIfEmpty();
+
         FirebaseDatabase.getInstance()
                 .getReference("machines")
                 .addValueEventListener(new ValueEventListener() {
@@ -279,6 +282,59 @@ public class MainActivity extends AppCompatActivity {
         timerHandler.post(timerRunnable);
 
         staleHandler.post(staleCheckRunnable);
+    }
+
+
+    private void addDummyDataIfEmpty() {
+        FirebaseDatabase.getInstance()
+                .getReference("machines")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot snapshot) {
+                        for (DataSnapshot machine : snapshot.getChildren()) {
+                            DataSnapshot history = machine.child("history");
+                            if (!history.exists() || history.getChildrenCount() == 0) {
+                                addDummyHistoryForMachine( machine.getKey(), machine.child("machineName")
+                                                .getValue(String.class));
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError error) {}
+                });
+    }
+
+    private void addDummyHistoryForMachine(String machineId, String machineName) {
+        if (machineId == null) return;
+
+        long now = System.currentTimeMillis() / 1000;
+        long day = 86400;
+
+        long[]   offsets   = {1, 3, 7, 14, 21};
+        double[] durations = {35.0, 42.0, 28.0, 45.0, 38.0};
+
+        for (int i = 0; i < offsets.length; i++) {
+            long epoch = now - (offsets[i] * day);
+
+            Map<String, Object> entry = new HashMap<>();
+            entry.put("epoch",       epoch);
+            entry.put("timestamp",
+                    new java.text.SimpleDateFormat(
+                            "yyyy-MM-dd HH:mm:ss",
+                            java.util.Locale.getDefault())
+                            .format(new java.util.Date(epoch * 1000L)));
+            entry.put("durationMin", durations[i]);
+            entry.put("costUSD",     2.50);
+            entry.put("currency",    "CAD");
+
+            FirebaseDatabase.getInstance()
+                    .getReference("machines")
+                    .child(machineId)
+                    .child("history")
+                    .push()
+                    .setValue(entry);
+        }
     }
 
     @Override
