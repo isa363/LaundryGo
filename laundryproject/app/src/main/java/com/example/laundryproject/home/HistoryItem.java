@@ -2,17 +2,31 @@ package com.example.laundryproject.home;
 
 public class HistoryItem {
 
-    public String machineName;
-    public long   epochSeconds;
-    public double durationMin;
-    public double costUSD;
+    private final String machineName;
+    private final long epoch;
+    private final double duration;
+    private final double cost;
 
-    public HistoryItem(String machineName, long epochSeconds,
-                       double durationMin, double costUSD) {
-        this.machineName  = machineName;
-        this.epochSeconds = epochSeconds;
-        this.durationMin  = durationMin;
-        this.costUSD      = costUSD;
+    public HistoryItem(String machineName, long epoch, double duration, double cost) {
+        this.machineName = machineName;
+        this.epoch = epoch;
+        this.duration = duration;
+        this.cost = cost;
     }
 
+    public String getMachineName() {
+        return machineName;
+    }
+
+    public long getEpoch() {
+        return epoch;
+    }
+
+    public double getDuration() {
+        return duration;
+    }
+
+    public double getCost() {
+        return cost;
+    }
 }

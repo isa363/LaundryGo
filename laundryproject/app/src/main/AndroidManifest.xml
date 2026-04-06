@@ -15,6 +15,14 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Laundryproject">
         <activity
+            android:name=".home.UsageInsightsActivity"
+            android:exported="false"
+            android:parentActivityName=".home.HistoryActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".home.HistoryActivity" />
+        </activity>
+        <activity
             android:name=".home.AdminClosedTicketsActivity"
             android:exported="false" />
         <activity

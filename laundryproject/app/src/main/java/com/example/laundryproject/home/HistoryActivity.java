@@ -1,4 +1,6 @@
-package com.example.laundryproject.home; 
+package com.example.laundryproject.home;
+
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.widget.TextView;
@@ -9,83 +11,112 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.laundryproject.R;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.button.MaterialButton;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
 public class HistoryActivity extends AppCompatActivity {
 
-    private TextView tvTotalSessions, tvTotalSpent;
+    private TextView tvTotalSessions;
+    private TextView tvTotalSpent;
     private HistoryAdapter adapter;
-    private List<HistoryItem> historyList = new ArrayList<>();
+    private final List<HistoryItem> historyList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history);
 
+        setupToolbar();
+        setupUsageInsightsButton();
+        setupRecyclerView();
+        bindViews();
+        loadHistory();
+    }
+
+    private void setupToolbar() {
         MaterialToolbar toolbar = findViewById(R.id.historyToolbar);
         setSupportActionBar(toolbar);
+
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle("Session History");
         }
+    }
 
-        tvTotalSessions = findViewById(R.id.tvTotalSessions);
-        tvTotalSpent    = findViewById(R.id.tvTotalSpent);
+    private void setupUsageInsightsButton() {
+        MaterialButton btnUsageInsights = findViewById(R.id.btnUsageInsights);
+        btnUsageInsights.setOnClickListener(v ->
+                startActivity(new Intent(HistoryActivity.this, UsageInsightsActivity.class)));
+    }
 
+    private void setupRecyclerView() {
         RecyclerView recycler = findViewById(R.id.recyclerHistory);
         recycler.setLayoutManager(new LinearLayoutManager(this));
         adapter = new HistoryAdapter(historyList);
         recycler.setAdapter(adapter);
+    }
 
-        // Read history from all machines
+    private void bindViews() {
+        tvTotalSessions = findViewById(R.id.tvTotalSessions);
+        tvTotalSpent = findViewById(R.id.tvTotalSpent);
+    }
+
+    private void loadHistory() {
         FirebaseDatabase.getInstance()
                 .getReference("machines")
                 .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot snapshot) {
                         historyList.clear();
-                        double total = 0;
+                        double totalSpent = 0.0;
 
                         for (DataSnapshot machine : snapshot.getChildren()) {
-                            String machineId   = machine.getKey();
-                            String machineName = machine.child("machineName")
-                                    .getValue(String.class);
-                            if (machineName == null) machineName = machineId;
+                            String machineId = machine.getKey();
+                            String machineName = machine.child("machineName").getValue(String.class);
 
-                            for (DataSnapshot entry :
-                                    machine.child("history").getChildren()) {
-                                Long   epoch    = entry.child("epoch")
-                                        .getValue(Long.class);
-                                Double duration = entry.child("durationMin")
-                                        .getValue(Double.class);
-                                Double cost     = entry.child("costUSD")
-                                        .getValue(Double.class);
+                            if (machineName == null || machineName.trim().isEmpty()) {
+                                machineName = machineId != null ? machineId : "Unknown Machine";
+                            }
 
-                                if (epoch != null) {
-                                    double c = cost != null ? cost : 0;
-                                    double d = duration != null ? duration : 0;
-                                    historyList.add(0,
-                                            new HistoryItem(machineName, epoch, d, c));
-                                    total += c;
+                            DataSnapshot historySnapshot = machine.child("history");
+                            for (DataSnapshot entry : historySnapshot.getChildren()) {
+                                Long epoch = entry.child("epoch").getValue(Long.class);
+                                Double duration = entry.child("durationMin").getValue(Double.class);
+                                Double cost = entry.child("costUSD").getValue(Double.class);
+
+                                if (epoch == null) {
+                                    continue;
                                 }
+
+                                double safeDuration = duration != null ? duration : 0.0;
+                                double safeCost = cost != null ? cost : 0.0;
+
+                                historyList.add(new HistoryItem(machineName, epoch, safeDuration, safeCost));
+                                totalSpent += safeCost;
                             }
                         }
 
+                        historyList.sort((a, b) -> Long.compare(b.getEpoch(), a.getEpoch()));
+
                         tvTotalSessions.setText(String.valueOf(historyList.size()));
-                        tvTotalSpent.setText(
-                                String.format(Locale.US, "$%.2f CAD", total));
+                        tvTotalSpent.setText(String.format(Locale.US, "$%.2f CAD", totalSpent));
+
                         adapter.notifyDataSetChanged();
                     }
 
                     @Override
-                    public void onCancelled(DatabaseError error) {}
+                    public void onCancelled(DatabaseError error) {
+                        tvTotalSessions.setText("0");
+                        tvTotalSpent.setText("$0.00 CAD");
+                    }
                 });
     }
 
@@ -97,5 +128,4 @@ public class HistoryActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
-
 }
