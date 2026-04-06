@@ -15,6 +15,24 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Laundryproject">
         <activity
+            android:name=".home.AdminClosedTicketsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".home.ClosedTicketsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".home.TicketChatActivity"
+            android:exported="false" />
+        <activity
+            android:name=".home.AdminViewTicketsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".home.MyTicketsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".home.SubmitTicketActivity"
+            android:exported="false" />
+        <activity
             android:name=".home.AdminViewMachinesActivity"
             android:exported="false" />
         <activity

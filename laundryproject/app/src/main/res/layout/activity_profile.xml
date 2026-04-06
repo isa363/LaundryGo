@@ -205,7 +205,6 @@
                     android:layout_height="1dp"
                     android:background="#E0E0E0" />
 
-
                 <LinearLayout
                     android:id="@+id/bldgRow"
                     android:layout_width="match_parent"
@@ -242,6 +241,39 @@
                 android:textStyle="bold"
                 android:textColor="@android:color/white"
                 android:backgroundTint="@color/primary_green" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/submitTicketBtn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Submit Ticket"
+                android:textAllCaps="false"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                app:backgroundTint="@color/primary_green" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/myTicketsBtn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="My Tickets"
+                android:textAllCaps="false"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                app:backgroundTint="@color/primary_green" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/closedTicketsBtn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Closed Tickets"
+                android:textAllCaps="false"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                app:backgroundTint="@color/primary_green" />
 
         </LinearLayout>
     </ScrollView>

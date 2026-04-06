@@ -9,7 +9,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.laundryproject.R;
@@ -26,12 +25,14 @@ public class ProfileActivity extends AppCompatActivity
         implements EmailDialog.EmailUpdateListener, PassDialog.PasswordUpdateListener {
 
     private MaterialToolbar profileToolbar;
-
+    private Button closedTicketsBtn;
     private EditText editUsername;
     private TextView viewEmail;
     private TextView apt;
     private TextView bldgcodeView;
     private Button saveBtn;
+    private Button submitTicketBtn;
+    private Button myTicketsBtn;
 
     private LinearLayout emailRow;
     private LinearLayout passwordRow;
@@ -46,7 +47,6 @@ public class ProfileActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_profile);
 
         authManager = new AuthManager();
@@ -121,6 +121,9 @@ public class ProfileActivity extends AppCompatActivity
         apt = findViewById(R.id.apt);
         bldgcodeView = findViewById(R.id.bldgcodeView);
         saveBtn = findViewById(R.id.saveBtn);
+        submitTicketBtn = findViewById(R.id.submitTicketBtn);
+        myTicketsBtn = findViewById(R.id.myTicketsBtn);
+        closedTicketsBtn = findViewById(R.id.closedTicketsBtn);
 
         emailRow = findViewById(R.id.emailRow);
         passwordRow = findViewById(R.id.passwordRow);
@@ -173,6 +176,21 @@ public class ProfileActivity extends AppCompatActivity
 
     private void setupListeners() {
         saveBtn.setOnClickListener(v -> saveUsername());
+
+        closedTicketsBtn.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, ClosedTicketsActivity.class);
+            startActivity(intent);
+        });
+
+        submitTicketBtn.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, SubmitTicketActivity.class);
+            startActivity(intent);
+        });
+
+        myTicketsBtn.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, MyTicketsActivity.class);
+            startActivity(intent);
+        });
 
         emailRow.setOnClickListener(v -> {
             EmailDialog dialog = new EmailDialog();

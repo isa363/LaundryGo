@@ -25,10 +25,12 @@ public class AdminActivity extends AppCompatActivity {
     private AuthManager authManager;
     private UserRepository userRepository;
 
+    private Button viewClosedTicketsButton;
+
     private Button logoutButton;
     private Button viewUsersButton;
     private Button viewMachinesButton;
-
+    private Button viewTicketsButton;
     private Button editBuildingCodeButton;
 
     private TextView buildingCodesTextView;
@@ -106,11 +108,11 @@ public class AdminActivity extends AppCompatActivity {
         logoutButton = findViewById(R.id.admin_logoutButton);
         viewUsersButton = findViewById(R.id.admin_viewUsersButton);
         viewMachinesButton = findViewById(R.id.admin_viewMachinesButton);
-
+        viewTicketsButton = findViewById(R.id.admin_viewTicketsButton);
         editBuildingCodeButton = findViewById(R.id.admin_editBuildingCodeButton);
+        viewClosedTicketsButton = findViewById(R.id.admin_viewClosedTicketsButton);
 
         buildingCodesTextView = findViewById(R.id.admin_buildingCodesTextView);
-
 
         logoutButton.setOnClickListener(v -> {
             authManager.signOut();
@@ -124,8 +126,20 @@ public class AdminActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        viewClosedTicketsButton.setOnClickListener(v -> {
+            Intent intent = new Intent(AdminActivity.this, AdminClosedTicketsActivity.class);
+            intent.putExtra("adminBuilding", adminBuildingName);
+            startActivity(intent);
+        });
+
         viewMachinesButton.setOnClickListener(v -> {
             Intent intent = new Intent(AdminActivity.this, AdminViewMachinesActivity.class);
+            intent.putExtra("adminBuilding", adminBuildingName);
+            startActivity(intent);
+        });
+
+        viewTicketsButton.setOnClickListener(v -> {
+            Intent intent = new Intent(AdminActivity.this, AdminViewTicketsActivity.class);
             intent.putExtra("adminBuilding", adminBuildingName);
             startActivity(intent);
         });
