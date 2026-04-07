@@ -83,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
         authManager    = new AuthManager();
         userRepository = new UserRepository();
@@ -150,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupUI(FirebaseUser firebaseUser, User user) {
 
-        setContentView(R.layout.activity_main);
+        //setContentView(R.layout.activity_main);
 
         MaterialToolbar toolbar = findViewById(R.id.topAppBar);
         setSupportActionBar(toolbar);

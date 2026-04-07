@@ -10,6 +10,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.laundryproject.R;
+import com.example.laundryproject.home.HomeActivity;
 import com.example.laundryproject.home.MainActivity;
 import com.example.laundryproject.util.ValidationUtils;
 import com.google.firebase.auth.FirebaseUser;
@@ -59,7 +60,7 @@ public class LoginActivity extends AppCompatActivity {
             currentUser.reload().addOnCompleteListener(task -> {
                 FirebaseUser refreshedUser = authManager.getCurrentUser();
                 if (refreshedUser != null && refreshedUser.isEmailVerified()) {
-                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                    startActivity(new Intent(LoginActivity.this, HomeActivity.class));
                     finish();
                 }
             });
@@ -87,7 +88,7 @@ public class LoginActivity extends AppCompatActivity {
                     FirebaseUser refreshedUser = authManager.getCurrentUser();
 
                     if (refreshedUser != null && refreshedUser.isEmailVerified()) {
-                        startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                        startActivity(new Intent(LoginActivity.this, HomeActivity.class));
                         finish();
                     } else {
                         authManager.signOut();
