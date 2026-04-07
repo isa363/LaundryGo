@@ -57,6 +57,7 @@ public class ProfileActivity extends AppCompatActivity
         setupToolbar();
         loadProfileData();
         setupListeners();
+        setupBottomNav();
 
         if (getIntent().getBooleanExtra("email_updated", false)) {
             currentUser = authManager.getCurrentUser();
@@ -133,6 +134,9 @@ public class ProfileActivity extends AppCompatActivity
         profileToolbar.setNavigationOnClickListener(v -> finish());
     }
 
+    private void setupBottomNav() {
+        BottomNavHelper.setup(this, R.id.bottomNav, R.id.nav_account);
+    }
     private void loadProfileData() {
         if (currentUser == null) {
             Toast.makeText(this, "Please sign in again.", Toast.LENGTH_SHORT).show();

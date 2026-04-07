@@ -45,10 +45,13 @@ public class UsageInsightsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_usage_insights);
 
+        BottomNavHelper.setup(this, R.id.bottomNav, R.id.nav_history);
+
         setupToolbar();
         bindViews();
         setupFilterButtons();
         loadCurrentUserAndInsights();
+        setupBottomNav();
     }
 
     private void setupToolbar() {
@@ -182,6 +185,10 @@ public class UsageInsightsActivity extends AppCompatActivity {
         tvSessionsValue.setText("0");
         heatmapView.setData(new int[7][24]);
         hourlyChartView.setData(new float[24]);
+    }
+
+    private void setupBottomNav() {
+        BottomNavHelper.setup(this, R.id.bottomNav, R.id.nav_history);
     }
 
     @Override

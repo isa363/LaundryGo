@@ -179,26 +179,7 @@ public class MainActivity extends AppCompatActivity {
         });
         recyclerMachines.setAdapter(adapter);
 
-        BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
-        bottomNav.setSelectedItemId(R.id.nav_machines);
-        bottomNav.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
-            if (id == R.id.nav_home) {
-                startActivity(new Intent(this, HomeActivity.class));
-                overridePendingTransition(0, 0);
-                return true;
-            }
-            if (id == R.id.nav_history) {
-                startActivity(new Intent(this, HistoryActivity.class));
-                return true;
-            }
-            if (id == R.id.nav_machines) return true;
-            if (id == R.id.nav_account) {
-                startActivity(new Intent(this, ProfileActivity.class));
-                return true;
-            }
-            return false;
-        });
+        BottomNavHelper.setup(this, R.id.bottomNav, R.id.nav_machines);
 
         createNotificationChannel();
 

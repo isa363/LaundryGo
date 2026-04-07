@@ -68,36 +68,7 @@ public class HomeActivity extends AppCompatActivity {
                 startActivity(new Intent(this, UsageInsightsActivity.class)));
     }
     private void setupBottomNav() {
-        BottomNavigationView bottomNav = findViewById(R.id.bottomNavigationView);
-        bottomNav.setSelectedItemId(R.id.nav_home);
-
-        bottomNav.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
-
-            if (id == R.id.nav_home) {
-                return true;
-            }
-
-            if (id == R.id.nav_machines) {
-                startActivity(new Intent(this, MainActivity.class));
-                overridePendingTransition(0, 0);
-                return true;
-            }
-
-            if (id == R.id.nav_history) {
-                startActivity(new Intent(this, HistoryActivity.class));
-                overridePendingTransition(0, 0);
-                return true;
-            }
-
-            if (id == R.id.nav_account) {
-                startActivity(new Intent(this, ProfileActivity.class));
-                overridePendingTransition(0, 0);
-                return true;
-            }
-
-            return false;
-        });
+        BottomNavHelper.setup(this, R.id.bottomNavigationView, R.id.nav_home);
     }
 
     private void loadDashboardData() {

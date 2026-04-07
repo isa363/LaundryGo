@@ -41,6 +41,8 @@ public class MachineDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_machine_detail);
 
+
+
         machineId   = getIntent().getStringExtra("MACHINE_ID");
         machineName = getIntent().getStringExtra("MACHINE_NAME");
         epochStart  = getIntent().getLongExtra("MACHINE_EPOCH", 0L);

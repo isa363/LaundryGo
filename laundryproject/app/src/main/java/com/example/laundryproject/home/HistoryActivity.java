@@ -47,6 +47,7 @@ public class HistoryActivity extends AppCompatActivity {
         setupRecycler();
         setupUsageInsightsButton();
         loadCurrentUserAndHistory();
+        setupBottomNav();
     }
 
     private void setupToolbar() {
@@ -108,6 +109,9 @@ public class HistoryActivity extends AppCompatActivity {
                 showEmptyState();
             }
         });
+    }
+    private void setupBottomNav() {
+        BottomNavHelper.setup(this, R.id.bottomNav, R.id.nav_history);
     }
 
     private void loadHistoryForBuilding(String buildingCode) {
