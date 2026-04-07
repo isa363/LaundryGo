@@ -9,14 +9,13 @@ import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-
 import com.example.laundryproject.R;
 
 import java.util.List;
 import java.util.Locale;
 
-
 public class MachineAdapter extends RecyclerView.Adapter<MachineAdapter.ViewHolder> {
+
     public interface OnClickListener {
         void onClick(MachineItem machine);
     }
@@ -40,12 +39,19 @@ public class MachineAdapter extends RecyclerView.Adapter<MachineAdapter.ViewHold
     public void onBindViewHolder(ViewHolder h, int pos) {
         MachineItem item = items.get(pos);
 
+        // machineName = "Washer 1" displayed as title
         h.machineName.setText(item.machineName);
+        // machineId = "machine_1" shown small grey underneath
         h.machineId.setText(item.machineId);
         h.stateText.setText(item.state);
 
         GradientDrawable gd =
                 (GradientDrawable) h.circle.getBackground();
+
+        // Price from Firebase machine node — fallback 2.50 if not set
+        String priceText = item.price > 0
+                ? String.format(Locale.US, "$%.2f CAD", item.price)
+                : "$2.50 CAD";
 
         if ("RUNNING".equalsIgnoreCase(item.state)) {
             gd.setColor(Color.parseColor("#FF9800"));
@@ -53,17 +59,16 @@ public class MachineAdapter extends RecyclerView.Adapter<MachineAdapter.ViewHold
             h.stateText.setTextColor(Color.parseColor("#FF9800"));
             h.timer.setVisibility(View.VISIBLE);
             h.timer.setText(formatTime(item.elapsedSeconds));
-            h.cost.setText("$2.50 CAD");
+            h.cost.setText(priceText);
 
         } else if ("AVAILABLE".equalsIgnoreCase(item.state)) {
             gd.setColor(Color.parseColor("#4CAF50"));
             gd.setStroke(6, Color.parseColor("#1B5E20"));
             h.stateText.setTextColor(Color.parseColor("#4CAF50"));
             h.timer.setVisibility(View.GONE);
-            h.cost.setText("—");
+            h.cost.setText(priceText);
 
         } else {
-            // DISCONNECTED
             gd.setColor(Color.parseColor("#9E9E9E"));
             gd.setStroke(6, Color.parseColor("#616161"));
             h.stateText.setTextColor(Color.parseColor("#9E9E9E"));
@@ -75,9 +80,7 @@ public class MachineAdapter extends RecyclerView.Adapter<MachineAdapter.ViewHold
     }
 
     @Override
-    public int getItemCount() {
-        return items.size();
-    }
+    public int getItemCount() { return items.size(); }
 
     private String formatTime(long seconds) {
         long h = seconds / 3600;
@@ -100,5 +103,4 @@ public class MachineAdapter extends RecyclerView.Adapter<MachineAdapter.ViewHold
             cost        = v.findViewById(R.id.cardCost);
         }
     }
-
 }
