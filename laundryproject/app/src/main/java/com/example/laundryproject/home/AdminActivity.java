@@ -32,6 +32,7 @@ public class AdminActivity extends AppCompatActivity {
     private Button viewMachinesButton;
     private Button viewTicketsButton;
     private Button editBuildingCodeButton;
+    private Button analyticsButton;
 
     private TextView buildingCodesTextView;
 
@@ -110,6 +111,7 @@ public class AdminActivity extends AppCompatActivity {
         viewMachinesButton = findViewById(R.id.admin_viewMachinesButton);
         viewTicketsButton = findViewById(R.id.admin_viewTicketsButton);
         editBuildingCodeButton = findViewById(R.id.admin_editBuildingCodeButton);
+        analyticsButton        = findViewById(R.id.admin_analyticsButton);
         viewClosedTicketsButton = findViewById(R.id.admin_viewClosedTicketsButton);
 
         buildingCodesTextView = findViewById(R.id.admin_buildingCodesTextView);
@@ -145,6 +147,10 @@ public class AdminActivity extends AppCompatActivity {
         });
 
         editBuildingCodeButton.setOnClickListener(v -> showEditBuildingCodeDialog());
+
+        analyticsButton.setOnClickListener(v ->
+                startActivity(new Intent(AdminActivity.this, AdminAnalyticsActivity.class)));
+
 
         loadAdminBuilding();
     }
