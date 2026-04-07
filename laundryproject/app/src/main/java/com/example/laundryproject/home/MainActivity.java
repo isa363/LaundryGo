@@ -180,10 +180,14 @@ public class MainActivity extends AppCompatActivity {
         recyclerMachines.setAdapter(adapter);
 
         BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
-        bottomNav.setSelectedItemId(R.id.nav_home);
+        bottomNav.setSelectedItemId(R.id.nav_machines);
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
-            if (id == R.id.nav_home)    return true;
+            if (id == R.id.nav_home) {
+                startActivity(new Intent(this, HomeActivity.class));
+                overridePendingTransition(0, 0);
+                return true;
+            }
             if (id == R.id.nav_history) {
                 startActivity(new Intent(this, HistoryActivity.class));
                 return true;
