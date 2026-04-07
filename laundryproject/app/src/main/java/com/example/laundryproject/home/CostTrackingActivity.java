@@ -168,8 +168,7 @@ public class CostTrackingActivity extends AppCompatActivity {
 
                     // Sort most recent first
                     Collections.sort(historyList,
-                            (a, b) -> Long.compare(
-                                    b.epochSeconds, a.epochSeconds));
+                            (a, b) -> Long.compare(b.getEpoch(), a.getEpoch()));
 
                     double finalTotal = monthlyTotal;
                     int    finalCount = sessionCount;
