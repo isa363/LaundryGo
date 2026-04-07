@@ -8,6 +8,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.laundryproject.R;
+import com.example.laundryproject.auth.LoginActivity;
 import com.example.laundryproject.data.UserRepository;
 import com.example.laundryproject.model.User;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -41,6 +42,13 @@ public class HomeActivity extends AppCompatActivity {
         setupShortcuts();
         setupBottomNav();
         loadDashboardData();
+
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (firebaseUser == null) {
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return;
+        }
     }
 
     private void bindViews() {

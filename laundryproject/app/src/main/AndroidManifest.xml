@@ -14,18 +14,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Laundryproject">
-        <activity
-            android:name=".home.BottomNavHelper"
-            android:exported="false" />
+
         <activity
             android:name=".home.HomeActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:exported="false" />
         <activity
             android:name=".home.UsageInsightsActivity"
             android:exported="false"
