@@ -1,7 +1,6 @@
 package com.example.laundryproject.home;
 
 import com.example.laundryproject.R;
-
 import com.example.laundryproject.auth.AuthManager;
 import com.example.laundryproject.auth.LoginActivity;
 import com.example.laundryproject.data.UserRepository;
@@ -12,16 +11,12 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,7 +30,6 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
@@ -56,7 +50,6 @@ public class MainActivity extends AppCompatActivity {
     private Handler timerHandler = new Handler(Looper.getMainLooper());
     private Runnable timerRunnable;
 
-    private long lastDataReceivedAt = 0;
     private static final long STALE_TIMEOUT_MS  = 120000;
     private static final long CHECK_INTERVAL_MS = 5000;
     private final Handler staleHandler = new Handler(Looper.getMainLooper());
@@ -68,14 +61,15 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void run() {
             long now = System.currentTimeMillis();
-            if (lastDataReceivedAt != 0 && now - lastDataReceivedAt > STALE_TIMEOUT_MS) {
-                for (MachineItem item : machineList) {
-                    if (!"AVAILABLE".equalsIgnoreCase(item.state)) {
-                        item.state = "DISCONNECTED";
-                    }
+            for (MachineItem item : machineList) {
+                // Only RUNNING can go DISCONNECTED — never touch AVAILABLE
+                if ("RUNNING".equalsIgnoreCase(item.state)
+                        && item.lastUpdatedAt != 0
+                        && now - item.lastUpdatedAt > STALE_TIMEOUT_MS) {
+                    item.state = "DISCONNECTED";
                 }
-                adapter.notifyDataSetChanged();
             }
+            if (adapter != null) adapter.notifyDataSetChanged();
             staleHandler.postDelayed(this, CHECK_INTERVAL_MS);
         }
     };
@@ -149,7 +143,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupUI(FirebaseUser firebaseUser, User user) {
-
         setContentView(R.layout.activity_main);
 
         MaterialToolbar toolbar = findViewById(R.id.topAppBar);
@@ -205,66 +198,77 @@ public class MainActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
                     != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(
-                        new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1);
+                requestPermissions(new String[]{
+                        android.Manifest.permission.POST_NOTIFICATIONS}, 1);
             }
         }
 
         FirebaseDatabase.getInstance()
-                .getReference("machines")
-                .addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot snapshot) {
-                        machineList.clear();
+            .getReference("machines")
+            .addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot snapshot) {
+                    machineList.clear();
 
-                        for (DataSnapshot child : snapshot.getChildren()) {
+                    for (DataSnapshot child : snapshot.getChildren()) {
 
-                            // FILTER BY USER BUILDING
-                            String building = child.child("buildingCode").getValue(String.class);
-                            if (building == null || !building.equals(user.buildingCode)) {
-                                continue;
-                            }
-
-                            String id    = child.getKey();
-                            String state = child.child("state").getValue(String.class);
-                            String name  = child.child("machineName").getValue(String.class);
-                            Long   epoch = child.child("epoch").getValue(Long.class);
-                            String ts    = child.child("timestamp").getValue(String.class);
-
-                            if (state == null) state = "DISCONNECTED";
-                            if (name  == null) name  = id;
-                            if (epoch == null) epoch = 0L;
-
-                            MachineItem item = new MachineItem(id, name, state, epoch, ts);
-                            item.lastUpdatedAt = System.currentTimeMillis();
-                            machineList.add(item);
-
-                            String prev = previousStates.containsKey(id)
-                                    ? previousStates.get(id)
-                                    : "AVAILABLE";
-
-                            if ("RUNNING".equalsIgnoreCase(prev)
-                                    && "AVAILABLE".equalsIgnoreCase(state)) {
-
-                                SharedPreferences prefs = getSharedPreferences("notif_prefs", MODE_PRIVATE);
-                                boolean subscribed = prefs.getBoolean(id, false);
-
-                                if (subscribed) {
-                                    showNotification(name + " is done!",
-                                            "Your laundry is ready to pick up.");
-                                    prefs.edit().putBoolean(id, false).apply();
-                                }
-                            }
-
-                            previousStates.put(id, state);
+                        // Filter by user's building
+                        String building = child.child("buildingCode")
+                                .getValue(String.class);
+                        if (building == null
+                                || !building.equals(user.buildingCode)) {
+                            continue;
                         }
 
-                        adapter.notifyDataSetChanged();
+                        String id    = child.getKey();
+                        String state = child.child("state")
+                                .getValue(String.class);
+                        // Always use machineName for display
+                        String name  = child.child("machineName")
+                                .getValue(String.class);
+                        Long   epoch = child.child("epoch")
+                                .getValue(Long.class);
+                        String ts    = child.child("timestamp")
+                                .getValue(String.class);
+                        // Read price from Firebase — not hardcoded
+                        Double price = child.child("price")
+                                .getValue(Double.class);
+
+                        if (state == null) state = "DISCONNECTED";
+                        if (name  == null) name  = id;
+                        if (epoch == null) epoch = 0L;
+                        double p = price != null ? price : 2.50;
+
+                        MachineItem item = new MachineItem(
+                                id, name, state, epoch, ts, p,
+                                user.buildingCode);
+                        item.lastUpdatedAt = System.currentTimeMillis();
+                        machineList.add(item);
+
+                        String prev = previousStates.containsKey(id)
+                                ? previousStates.get(id) : "AVAILABLE";
+
+                        if ("RUNNING".equalsIgnoreCase(prev)
+                                && "AVAILABLE".equalsIgnoreCase(state)) {
+                            SharedPreferences prefs = getSharedPreferences(
+                                    "notif_prefs", MODE_PRIVATE);
+                            boolean subscribed = prefs.getBoolean(id, false);
+                            if (subscribed) {
+                                showNotification(name + " is done!",
+                                        "Your laundry is ready to pick up.");
+                                prefs.edit().putBoolean(id, false).apply();
+                            }
+                        }
+
+                        previousStates.put(id, state);
                     }
 
-                    @Override
-                    public void onCancelled(DatabaseError error) {}
-                });
+                    adapter.notifyDataSetChanged();
+                }
+
+                @Override
+                public void onCancelled(DatabaseError error) {}
+            });
 
         timerRunnable = new Runnable() {
             @Override
@@ -276,12 +280,11 @@ public class MainActivity extends AppCompatActivity {
                         item.elapsedSeconds = nowSec - item.epochStart;
                     }
                 }
-                adapter.notifyDataSetChanged();
+                if (adapter != null) adapter.notifyDataSetChanged();
                 timerHandler.postDelayed(this, 1000);
             }
         };
         timerHandler.post(timerRunnable);
-
         staleHandler.post(staleCheckRunnable);
     }
 
@@ -296,8 +299,7 @@ public class MainActivity extends AppCompatActivity {
         if (item.getItemId() == R.id.action_logout) {
             authManager.signOut();
             Toast.makeText(MainActivity.this,
-                    "Logged out successfully",
-                    Toast.LENGTH_SHORT).show();
+                    "Logged out successfully", Toast.LENGTH_SHORT).show();
             redirectToLogin();
             return true;
         }
@@ -317,14 +319,16 @@ public class MainActivity extends AppCompatActivity {
             NotificationChannel channel = new NotificationChannel(
                     "laundry_channel", "Laundry Alerts",
                     NotificationManager.IMPORTANCE_HIGH);
-            NotificationManager nm = getSystemService(NotificationManager.class);
+            NotificationManager nm =
+                    getSystemService(NotificationManager.class);
             if (nm != null) nm.createNotificationChannel(channel);
         }
     }
 
     private void showNotification(String title, String message) {
         NotificationManager nm =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                (NotificationManager) getSystemService(
+                        Context.NOTIFICATION_SERVICE);
         if (nm == null) return;
         NotificationCompat.Builder builder =
                 new NotificationCompat.Builder(this, "laundry_channel")
