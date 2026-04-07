@@ -4,14 +4,19 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.laundryproject.R;
+import com.example.laundryproject.data.UserRepository;
+import com.example.laundryproject.model.User;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
@@ -29,16 +34,19 @@ public class HistoryActivity extends AppCompatActivity {
     private HistoryAdapter adapter;
     private final List<HistoryItem> historyList = new ArrayList<>();
 
+    private final UserRepository userRepository = new UserRepository();
+    private String currentBuildingCode;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history);
 
         setupToolbar();
+        setupViews();
+        setupRecycler();
         setupUsageInsightsButton();
-        setupRecyclerView();
-        bindViews();
-        loadHistory();
+        loadCurrentUserAndHistory();
     }
 
     private void setupToolbar() {
@@ -51,25 +59,58 @@ public class HistoryActivity extends AppCompatActivity {
         }
     }
 
-    private void setupUsageInsightsButton() {
-        MaterialButton btnUsageInsights = findViewById(R.id.btnUsageInsights);
-        btnUsageInsights.setOnClickListener(v ->
-                startActivity(new Intent(HistoryActivity.this, UsageInsightsActivity.class)));
+    private void setupViews() {
+        tvTotalSessions = findViewById(R.id.tvTotalSessions);
+        tvTotalSpent = findViewById(R.id.tvTotalSpent);
     }
 
-    private void setupRecyclerView() {
+    private void setupRecycler() {
         RecyclerView recycler = findViewById(R.id.recyclerHistory);
         recycler.setLayoutManager(new LinearLayoutManager(this));
         adapter = new HistoryAdapter(historyList);
         recycler.setAdapter(adapter);
     }
 
-    private void bindViews() {
-        tvTotalSessions = findViewById(R.id.tvTotalSessions);
-        tvTotalSpent = findViewById(R.id.tvTotalSpent);
+    private void setupUsageInsightsButton() {
+        MaterialButton btnUsageInsights = findViewById(R.id.btnUsageInsights);
+        if (btnUsageInsights != null) {
+            btnUsageInsights.setOnClickListener(v ->
+                    startActivity(new Intent(HistoryActivity.this, UsageInsightsActivity.class)));
+        }
     }
 
-    private void loadHistory() {
+    private void loadCurrentUserAndHistory() {
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+
+        if (firebaseUser == null) {
+            Toast.makeText(this, "User not logged in.", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        userRepository.getUser(firebaseUser.getUid(), new UserRepository.LoadUserCallback() {
+            @Override
+            public void onSuccess(User user) {
+                if (user == null || user.buildingCode == null || user.buildingCode.trim().isEmpty()) {
+                    Toast.makeText(HistoryActivity.this,
+                            "Could not determine your building.", Toast.LENGTH_SHORT).show();
+                    showEmptyState();
+                    return;
+                }
+
+                currentBuildingCode = user.buildingCode.trim();
+                loadHistoryForBuilding(currentBuildingCode);
+            }
+
+            @Override
+            public void onFailure(String errorMessage) {
+                Toast.makeText(HistoryActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+                showEmptyState();
+            }
+        });
+    }
+
+    private void loadHistoryForBuilding(String buildingCode) {
         FirebaseDatabase.getInstance()
                 .getReference("machines")
                 .addValueEventListener(new ValueEventListener() {
@@ -79,6 +120,11 @@ public class HistoryActivity extends AppCompatActivity {
                         double totalSpent = 0.0;
 
                         for (DataSnapshot machine : snapshot.getChildren()) {
+                            String machineBuilding = machine.child("buildingCode").getValue(String.class);
+                            if (machineBuilding == null || !machineBuilding.equals(buildingCode)) {
+                                continue;
+                            }
+
                             String machineId = machine.getKey();
                             String machineName = machine.child("machineName").getValue(String.class);
 
@@ -108,16 +154,25 @@ public class HistoryActivity extends AppCompatActivity {
 
                         tvTotalSessions.setText(String.valueOf(historyList.size()));
                         tvTotalSpent.setText(String.format(Locale.US, "$%.2f CAD", totalSpent));
-
                         adapter.notifyDataSetChanged();
                     }
 
                     @Override
                     public void onCancelled(DatabaseError error) {
-                        tvTotalSessions.setText("0");
-                        tvTotalSpent.setText("$0.00 CAD");
+                        Toast.makeText(HistoryActivity.this,
+                                "Failed to load history.", Toast.LENGTH_SHORT).show();
+                        showEmptyState();
                     }
                 });
+    }
+
+    private void showEmptyState() {
+        historyList.clear();
+        tvTotalSessions.setText("0");
+        tvTotalSpent.setText("$0.00 CAD");
+        if (adapter != null) {
+            adapter.notifyDataSetChanged();
+        }
     }
 
     @Override

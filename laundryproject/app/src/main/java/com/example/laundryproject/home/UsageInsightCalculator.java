@@ -2,7 +2,6 @@ package com.example.laundryproject.home;
 
 import com.google.firebase.database.DataSnapshot;
 
-import java.text.DateFormatSymbols;
 import java.util.Calendar;
 import java.util.Locale;
 
@@ -38,12 +37,16 @@ public final class UsageInsightCalculator {
         }
     }
 
-    public static Result fromSnapshot(DataSnapshot snapshot, String filter) {
+    public static Result fromSnapshot(DataSnapshot snapshot, String buildingCode, String filter) {
         Result result = new Result();
 
         for (DataSnapshot machine : snapshot.getChildren()) {
-            String machineType = resolveMachineType(machine);
+            String machineBuilding = machine.child("buildingCode").getValue(String.class);
+            if (machineBuilding == null || !machineBuilding.equals(buildingCode)) {
+                continue;
+            }
 
+            String machineType = resolveMachineType(machine);
             if (!matchesFilter(machineType, filter)) {
                 continue;
             }
@@ -56,14 +59,21 @@ public final class UsageInsightCalculator {
                 Calendar calendar = Calendar.getInstance();
                 calendar.setTimeInMillis(epoch * 1000L);
 
-                int day = calendar.get(Calendar.DAY_OF_WEEK) - 1; // 0..6
-                int hour = calendar.get(Calendar.HOUR_OF_DAY);    // 0..23
+                int day = calendar.get(Calendar.DAY_OF_WEEK) - 1;
+                int hour = calendar.get(Calendar.HOUR_OF_DAY);
 
                 result.dayHourCounts[day][hour]++;
                 result.totalSessions++;
             }
         }
 
+        computePeakAndQuiet(result);
+        computeHourlyAverages(result);
+
+        return result;
+    }
+
+    private static void computePeakAndQuiet(Result result) {
         int maxCount = -1;
         int minPositiveCount = Integer.MAX_VALUE;
 
@@ -84,7 +94,9 @@ public final class UsageInsightCalculator {
                 }
             }
         }
+    }
 
+    private static void computeHourlyAverages(Result result) {
         for (int hour = 0; hour < 24; hour++) {
             int totalForHour = 0;
             for (int day = 0; day < 7; day++) {
@@ -92,8 +104,6 @@ public final class UsageInsightCalculator {
             }
             result.hourlyAverages[hour] = totalForHour / 7f;
         }
-
-        return result;
     }
 
     private static boolean matchesFilter(String machineType, String filter) {
