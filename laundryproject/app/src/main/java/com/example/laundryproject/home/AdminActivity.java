@@ -14,6 +14,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.laundryproject.R;
+import com.example.laundryproject.FcmTokenHelper;
 import com.example.laundryproject.auth.AuthManager;
 import com.example.laundryproject.auth.LoginActivity;
 import com.example.laundryproject.data.UserRepository;
@@ -117,6 +118,7 @@ public class AdminActivity extends AppCompatActivity {
         buildingCodesTextView = findViewById(R.id.admin_buildingCodesTextView);
 
         logoutButton.setOnClickListener(v -> {
+            FcmTokenHelper.clearCurrentUserToken();
             authManager.signOut();
             Toast.makeText(AdminActivity.this, "Logged out successfully", Toast.LENGTH_SHORT).show();
             redirectToLogin();

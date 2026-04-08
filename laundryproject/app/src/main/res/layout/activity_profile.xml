@@ -275,6 +275,17 @@
                 android:textColor="@android:color/white"
                 app:backgroundTint="@color/primary_green" />
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnInsights"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="My Spending"
+                android:textAllCaps="false"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                app:backgroundTint="@color/primary_green" />
+
         </LinearLayout>
     </ScrollView>
 

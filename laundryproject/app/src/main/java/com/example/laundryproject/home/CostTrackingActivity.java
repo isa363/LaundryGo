@@ -40,7 +40,7 @@ public class CostTrackingActivity extends AppCompatActivity {
     private LineChart lineChart;
     private RecyclerView recyclerBreakdown;
     private HistoryAdapter adapter;
-    private List<HistoryItem> historyList = new ArrayList<>();
+    private final List<HistoryItem> historyList = new ArrayList<>();
 
     private AuthManager authManager;
     private UserRepository userRepository;
@@ -50,7 +50,7 @@ public class CostTrackingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cost_tracking);
 
-        authManager    = new AuthManager();
+        authManager = new AuthManager();
         userRepository = new UserRepository();
 
         MaterialToolbar toolbar = findViewById(R.id.costToolbar);
@@ -60,10 +60,10 @@ public class CostTrackingActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("My Spending");
         }
 
-        tvMonthlyTotal    = findViewById(R.id.tvMonthlyTotal);
-        tvSessionCount    = findViewById(R.id.tvSessionCount);
-        tvAvgCost         = findViewById(R.id.tvAvgCost);
-        lineChart         = findViewById(R.id.lineChart);
+        tvMonthlyTotal = findViewById(R.id.tvMonthlyTotal);
+        tvSessionCount = findViewById(R.id.tvSessionCount);
+        tvAvgCost = findViewById(R.id.tvAvgCost);
+        lineChart = findViewById(R.id.lineChart);
         recyclerBreakdown = findViewById(R.id.recyclerBreakdown);
 
         recyclerBreakdown.setLayoutManager(new LinearLayoutManager(this));
@@ -76,14 +76,20 @@ public class CostTrackingActivity extends AppCompatActivity {
 
     private void loadData() {
         FirebaseUser currentUser = authManager.getCurrentUser();
-        if (currentUser == null) return;
+        if (currentUser == null) {
+            Toast.makeText(this, "No user logged in", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        userRepository.getUser(currentUser.getUid(),
-                new UserRepository.LoadUserCallback() {
+        userRepository.getUser(currentUser.getUid(), new UserRepository.LoadUserCallback() {
             @Override
             public void onSuccess(User user) {
-                if (user == null) return;
-                loadMachineData(user.buildingCode);
+                if (user == null) {
+                    Toast.makeText(CostTrackingActivity.this,
+                            "User not found", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                loadMachineData(user.buildingCode, user.aptNumber, currentUser.getUid());
             }
 
             @Override
@@ -94,100 +100,108 @@ public class CostTrackingActivity extends AppCompatActivity {
         });
     }
 
-    private void loadMachineData(String userBuilding) {
+    private void loadMachineData(String userBuilding, String userApartment, String uid) {
         FirebaseDatabase.getInstance()
-            .getReference("machines")
-            .addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot snapshot) {
-                    historyList.clear();
+                .getReference("machines")
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot snapshot) {
+                        historyList.clear();
 
-                    double monthlyTotal = 0;
-                    int    sessionCount = 0;
+                        double monthlyTotal = 0;
+                        int sessionCount = 0;
 
-                    Calendar cal = Calendar.getInstance();
-                    int currentMonth = cal.get(Calendar.MONTH);
-                    int currentYear  = cal.get(Calendar.YEAR);
+                        Calendar now = Calendar.getInstance();
+                        int currentMonth = now.get(Calendar.MONTH);
+                        int currentYear = now.get(Calendar.YEAR);
 
-                    Map<Integer, Double> dailySpending = new TreeMap<>();
+                        Map<Integer, Double> dailySpending = new TreeMap<>();
 
-                    for (DataSnapshot machine : snapshot.getChildren()) {
+                        for (DataSnapshot machine : snapshot.getChildren()) {
+                            String building = machine.child("buildingCode").getValue(String.class);
+                            if (building == null || !building.equals(userBuilding)) {
+                                continue;
+                            }
 
-                        // Filter by user's building
-                        String building = machine.child("buildingCode")
-                                .getValue(String.class);
-                        if (building == null
-                                || !building.equals(userBuilding)) {
-                            continue;
-                        }
+                            String machineName = machine.child("machineName").getValue(String.class);
+                            if (machineName == null || machineName.trim().isEmpty()) {
+                                machineName = machine.getKey();
+                            }
 
-                        // Use machineName
-                        String machineName = machine.child("machineName")
-                                .getValue(String.class);
-                        if (machineName == null) machineName = machine.getKey();
+                            Double machinePrice = machine.child("price").getValue(Double.class);
 
-                        // Price from machine node in DB
-                        Double machinePrice = machine.child("price")
-                                .getValue(Double.class);
-                        double price = machinePrice != null ? machinePrice : 2.50;
+                            for (DataSnapshot entry : machine.child("history").getChildren()) {
+                                Long epoch = entry.child("epoch").getValue(Long.class);
+                                Double duration = entry.child("durationMin").getValue(Double.class);
+                                Double storedCost = entry.child("costUSD").getValue(Double.class);
 
-                        for (DataSnapshot entry :
-                                machine.child("history").getChildren()) {
-                            Long   epoch    = entry.child("epoch")
-                                    .getValue(Long.class);
-                            Double duration = entry.child("durationMin")
-                                    .getValue(Double.class);
-                            // Use stored costUSD if present, else machine price
-                            Double storedCost = entry.child("costUSD")
-                                    .getValue(Double.class);
-                            double cost = storedCost != null
-                                    ? storedCost : price;
+                                if (epoch == null) {
+                                    continue;
+                                }
 
-                            if (epoch == null) continue;
+                                String entryUid = entry.child("uid").getValue(String.class);
+                                String entryApt = entry.child("aptNumber").getValue(String.class);
+                                String entryBuilding = entry.child("buildingCode").getValue(String.class);
 
-                            double d = duration != null ? duration : 0;
+                                if (entryBuilding != null && !entryBuilding.equals(userBuilding)) {
+                                    continue;
+                                }
 
-                            Calendar entryCal = Calendar.getInstance();
-                            entryCal.setTimeInMillis(epoch * 1000L);
+                                boolean belongsToUser = false;
+                                if (entryUid != null && entryUid.equals(uid)) {
+                                    belongsToUser = true;
+                                } else if (entryApt != null && userApartment != null && entryApt.equals(userApartment)) {
+                                    belongsToUser = true;
+                                }
 
-                            if (entryCal.get(Calendar.MONTH) == currentMonth
-                                    && entryCal.get(Calendar.YEAR)
-                                    == currentYear) {
-                                monthlyTotal += cost;
-                                sessionCount++;
+                                if (!belongsToUser) {
+                                    continue;
+                                }
 
-                                int day = entryCal.get(Calendar.DAY_OF_MONTH);
-                                dailySpending.put(day,
-                                    dailySpending.getOrDefault(day, 0.0) + cost);
+                                if (storedCost == null && machinePrice == null) {
+                                    continue;
+                                }
 
-                                historyList.add(
-                                    new HistoryItem(machineName, epoch, d, cost));
+                                double cost = storedCost != null ? storedCost : machinePrice;
+                                double d = duration != null ? duration : 0.0;
+
+                                Calendar entryCal = Calendar.getInstance();
+                                entryCal.setTimeInMillis(epoch * 1000L);
+
+                                historyList.add(new HistoryItem(machineName, epoch, d, cost));
+
+                                if (entryCal.get(Calendar.MONTH) == currentMonth
+                                        && entryCal.get(Calendar.YEAR) == currentYear) {
+                                    monthlyTotal += cost;
+                                    sessionCount++;
+
+                                    int day = entryCal.get(Calendar.DAY_OF_MONTH);
+                                    dailySpending.put(day,
+                                            dailySpending.getOrDefault(day, 0.0) + cost);
+                                }
                             }
                         }
+
+                        Collections.sort(historyList,
+                                (a, b) -> Long.compare(b.getEpoch(), a.getEpoch()));
+
+                        tvMonthlyTotal.setText(String.format(
+                                Locale.US, "$%.2f CAD", monthlyTotal));
+                        tvSessionCount.setText(String.valueOf(sessionCount));
+                        tvAvgCost.setText(sessionCount > 0
+                                ? String.format(Locale.US, "$%.2f CAD", monthlyTotal / sessionCount)
+                                : "$0.00 CAD");
+
+                        updateChart(dailySpending);
+                        adapter.notifyDataSetChanged();
                     }
 
-                    // Sort most recent first
-                    Collections.sort(historyList,
-                            (a, b) -> Long.compare(b.getEpoch(), a.getEpoch()));
-
-                    double finalTotal = monthlyTotal;
-                    int    finalCount = sessionCount;
-
-                    tvMonthlyTotal.setText(String.format(
-                            Locale.US, "$%.2f CAD", finalTotal));
-                    tvSessionCount.setText(String.valueOf(finalCount));
-                    tvAvgCost.setText(finalCount > 0
-                        ? String.format(Locale.US, "$%.2f CAD",
-                            finalTotal / finalCount)
-                        : "$0.00 CAD");
-
-                    updateChart(dailySpending);
-                    adapter.notifyDataSetChanged();
-                }
-
-                @Override
-                public void onCancelled(DatabaseError error) {}
-            });
+                    @Override
+                    public void onCancelled(DatabaseError error) {
+                        Toast.makeText(CostTrackingActivity.this,
+                                error.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     private void setupChart() {
@@ -210,11 +224,15 @@ public class CostTrackingActivity extends AppCompatActivity {
 
     private void updateChart(Map<Integer, Double> dailySpending) {
         List<Entry> entries = new ArrayList<>();
+
         for (Map.Entry<Integer, Double> entry : dailySpending.entrySet()) {
-            entries.add(new Entry(
-                    entry.getKey(), entry.getValue().floatValue()));
+            entries.add(new Entry(entry.getKey(), entry.getValue().floatValue()));
         }
-        if (entries.isEmpty()) return;
+
+        if (entries.isEmpty()) {
+            lineChart.clear();
+            return;
+        }
 
         LineDataSet dataSet = new LineDataSet(entries, "Daily Spending");
         dataSet.setColor(Color.parseColor("#1a56a0"));
