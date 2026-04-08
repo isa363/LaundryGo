@@ -44,21 +44,44 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvWelcome, tvAvatar;
 
     private MachineAdapter adapter;
-    private final List<MachineItem> machineList = new ArrayList<>();
-    private final Map<String, String> previousStates = new HashMap<>();
+    private List<MachineItem> machineList = new ArrayList<>();
+    private Map<String, String> previousStates = new HashMap<>();
 
-    private final Handler timerHandler = new Handler(Looper.getMainLooper());
+    private Handler timerHandler = new Handler(Looper.getMainLooper());
     private Runnable timerRunnable;
+
+    private long lastDataReceivedAt = 0;
+    private static final long STALE_TIMEOUT_MS = 120000;
+    private static final long CHECK_INTERVAL_MS = 5000;
+    private final Handler staleHandler = new Handler(Looper.getMainLooper());
 
     private AuthManager authManager;
     private UserRepository userRepository;
+
+    private final Runnable staleCheckRunnable = new Runnable() {
+        @Override
+        public void run() {
+            long now = System.currentTimeMillis();
+            if (lastDataReceivedAt != 0 && now - lastDataReceivedAt > STALE_TIMEOUT_MS) {
+                for (MachineItem item : machineList) {
+                    if (!"AVAILABLE".equalsIgnoreCase(item.state)) {
+                        item.state = "DISCONNECTED";
+                    }
+                }
+                if (adapter != null) {
+                    adapter.notifyDataSetChanged();
+                }
+            }
+            staleHandler.postDelayed(this, CHECK_INTERVAL_MS);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        authManager = new AuthManager();
+        authManager = new AuthManager(); // only used for logout
         userRepository = new UserRepository();
 
         MaterialToolbar toolbar = findViewById(R.id.topAppBar);
@@ -67,6 +90,14 @@ public class MainActivity extends AppCompatActivity {
         tvWelcome = findViewById(R.id.tvWelcome);
         tvAvatar = findViewById(R.id.tvAvatar);
 
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (firebaseUser != null && firebaseUser.getEmail() != null) {
+            String username = firebaseUser.getEmail().split("@")[0];
+            String initial = String.valueOf(username.charAt(0)).toUpperCase();
+            tvWelcome.setText("Welcome, " + username);
+            tvAvatar.setText(initial);
+        }
+
         recyclerMachines = findViewById(R.id.recyclerMachines);
         recyclerMachines.setLayoutManager(new LinearLayoutManager(this));
 
@@ -74,6 +105,8 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(this, MachineDetailActivity.class);
             intent.putExtra("MACHINE_ID", machine.machineId);
             intent.putExtra("MACHINE_NAME", machine.machineName);
+            intent.putExtra("MACHINE_EPOCH",
+                    machine.epochStart != null ? machine.epochStart : 0L);
             startActivity(intent);
         });
 
@@ -81,12 +114,14 @@ public class MainActivity extends AppCompatActivity {
 
         BottomNavHelper.setup(this, R.id.bottomNav, R.id.nav_machines);
 
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        createNotificationChannel();
 
-        if (user != null && user.getEmail() != null) {
-            String username = user.getEmail().split("@")[0];
-            tvWelcome.setText("Welcome, " + username);
-            tvAvatar.setText(username.substring(0, 1).toUpperCase());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
+                    != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(
+                        new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1);
+            }
         }
 
         loadMachines();
@@ -106,11 +141,11 @@ public class MainActivity extends AppCompatActivity {
                         .addValueEventListener(new ValueEventListener() {
                             @Override
                             public void onDataChange(DataSnapshot snapshot) {
+                                lastDataReceivedAt = System.currentTimeMillis();
                                 machineList.clear();
 
                                 for (DataSnapshot child : snapshot.getChildren()) {
                                     String building = child.child("buildingCode").getValue(String.class);
-
                                     if (building == null || !building.equals(user.buildingCode)) {
                                         continue;
                                     }
@@ -118,11 +153,35 @@ public class MainActivity extends AppCompatActivity {
                                     String id = child.getKey();
                                     String state = child.child("state").getValue(String.class);
                                     String name = child.child("machineName").getValue(String.class);
+                                    Long epoch = child.child("epoch").getValue(Long.class);
+                                    String ts = child.child("timestamp").getValue(String.class);
 
                                     if (state == null) state = "DISCONNECTED";
                                     if (name == null) name = id;
+                                    if (epoch == null) epoch = 0L;
 
-                                    machineList.add(new MachineItem(id, name, state, 0L, ""));
+                                    MachineItem item = new MachineItem(id, name, state, epoch, ts);
+                                    item.lastUpdatedAt = System.currentTimeMillis();
+                                    machineList.add(item);
+
+                                    String prev = previousStates.containsKey(id)
+                                            ? previousStates.get(id)
+                                            : "AVAILABLE";
+
+                                    if ("RUNNING".equalsIgnoreCase(prev)
+                                            && "AVAILABLE".equalsIgnoreCase(state)) {
+
+                                        SharedPreferences prefs = getSharedPreferences("notif_prefs", MODE_PRIVATE);
+                                        boolean subscribed = prefs.getBoolean(id, false);
+
+                                        if (subscribed) {
+                                            showNotification(name + " is done!",
+                                                    "Your laundry is ready to pick up.");
+                                            prefs.edit().putBoolean(id, false).apply();
+                                        }
+                                    }
+
+                                    previousStates.put(id, state);
                                 }
 
                                 adapter.notifyDataSetChanged();
@@ -135,6 +194,24 @@ public class MainActivity extends AppCompatActivity {
                                         Toast.LENGTH_SHORT).show();
                             }
                         });
+
+                timerRunnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        long nowSec = System.currentTimeMillis() / 1000;
+                        for (MachineItem item : machineList) {
+                            if ("RUNNING".equalsIgnoreCase(item.state)
+                                    && item.epochStart != null) {
+                                item.elapsedSeconds = nowSec - item.epochStart;
+                            }
+                        }
+                        adapter.notifyDataSetChanged();
+                        timerHandler.postDelayed(this, 1000);
+                    }
+                };
+                timerHandler.post(timerRunnable);
+
+                staleHandler.post(staleCheckRunnable);
             }
 
             @Override
@@ -163,5 +240,44 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (timerRunnable != null) {
+            timerHandler.removeCallbacks(timerRunnable);
+        }
+        staleHandler.removeCallbacks(staleCheckRunnable);
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    "laundry_channel",
+                    "Laundry Alerts",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            NotificationManager nm = getSystemService(NotificationManager.class);
+            if (nm != null) {
+                nm.createNotificationChannel(channel);
+            }
+        }
+    }
+
+    private void showNotification(String title, String message) {
+        NotificationManager nm =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (nm == null) return;
+
+        NotificationCompat.Builder builder =
+                new NotificationCompat.Builder(this, "laundry_channel")
+                        .setSmallIcon(android.R.drawable.ic_dialog_info)
+                        .setContentTitle(title)
+                        .setContentText(message)
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setAutoCancel(true);
+
+        nm.notify((int) System.currentTimeMillis(), builder.build());
     }
 }
