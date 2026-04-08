@@ -65,16 +65,25 @@ public class AdminViewUsersActivity extends AppCompatActivity {
             @Override
             public void onSuccess(List<UserRepository.UserWithId> users) {
 
-                // FILTER USERS BY ADMIN BUILDING
                 List<UserRepository.UserWithId> filtered = new ArrayList<>();
+
                 for (UserRepository.UserWithId u : users) {
-                    if (u.user.buildingCode != null &&
-                            u.user.buildingCode.equals(adminBuilding)) {
+                    if (u == null || u.user == null) continue;
+
+                    String buildingCode = u.user.buildingCode != null
+                            ? u.user.buildingCode.trim()
+                            : "";
+
+                    String accountType = u.user.accountType != null
+                            ? u.user.accountType.trim()
+                            : "";
+
+                    if (buildingCode.equalsIgnoreCase(adminBuilding)
+                            && accountType.equalsIgnoreCase("Regular")) {
                         filtered.add(u);
                     }
                 }
 
-                // Sort by apartment number
                 Collections.sort(filtered, (u1, u2) -> {
                     try {
                         int apt1 = Integer.parseInt(u1.user.aptNumber != null ? u1.user.aptNumber : "0");
