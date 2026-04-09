@@ -88,7 +88,7 @@ public class SubmitTicketActivity extends AppCompatActivity {
             public View getDropDownView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
                 View view = super.getDropDownView(position, convertView, parent);
                 TextView textView = (TextView) view.findViewById(android.R.id.text1);
-                textView.setTextColor(Color.WHITE);
+                textView.setTextColor(Color.BLACK);
                 textView.setTextSize(16f);
                 return view;
             }
