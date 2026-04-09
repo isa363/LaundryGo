@@ -1,8 +1,6 @@
 package com.example.laundryproject.home;
 
 import com.example.laundryproject.R;
-import com.example.laundryproject.auth.AuthManager;
-import com.example.laundryproject.auth.LoginActivity;
 import com.example.laundryproject.data.UserRepository;
 import com.example.laundryproject.model.User;
 
@@ -15,8 +13,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -55,7 +51,6 @@ public class MainActivity extends AppCompatActivity {
     private static final long CHECK_INTERVAL_MS = 5000;
     private final Handler staleHandler = new Handler(Looper.getMainLooper());
 
-    private AuthManager authManager;
     private UserRepository userRepository;
 
     private final Runnable staleCheckRunnable = new Runnable() {
@@ -81,21 +76,18 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        authManager = new AuthManager(); // only used for logout
         userRepository = new UserRepository();
 
         MaterialToolbar toolbar = findViewById(R.id.topAppBar);
         setSupportActionBar(toolbar);
 
         tvWelcome = findViewById(R.id.tvWelcome);
-        tvAvatar = findViewById(R.id.tvAvatar);
 
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         if (firebaseUser != null && firebaseUser.getEmail() != null) {
             String username = firebaseUser.getEmail().split("@")[0];
             String initial = String.valueOf(username.charAt(0)).toUpperCase();
             tvWelcome.setText("Welcome, " + username);
-            tvAvatar.setText(initial);
         }
 
         recyclerMachines = findViewById(R.id.recyclerMachines);
@@ -221,26 +213,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_logout) {
-            authManager.signOut();
-
-            Intent intent = new Intent(this, LoginActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
-
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
+    
 
     @Override
     protected void onDestroy() {
