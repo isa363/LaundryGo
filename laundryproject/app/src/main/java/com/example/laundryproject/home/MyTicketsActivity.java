@@ -9,6 +9,7 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -26,6 +27,7 @@ public class MyTicketsActivity extends AppCompatActivity {
     private RecyclerView recyclerViewTickets;
     private ProgressBar progressBar;
     private TextView tvEmpty;
+    private Toolbar toolbar;
 
     private TicketAdapter ticketAdapter;
     private final List<Ticket> ticketList = new ArrayList<>();
@@ -38,10 +40,16 @@ public class MyTicketsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_tickets);
 
+        toolbar = findViewById(R.id.toolbarMyTickets);
+        setSupportActionBar(toolbar);
+
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("My Tickets");
+            toolbar.setTitleTextColor(android.graphics.Color.BLACK);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
+
+        toolbar.setNavigationOnClickListener(v -> finish());
 
         recyclerViewTickets = findViewById(R.id.recyclerViewMyTickets);
         progressBar = findViewById(R.id.progressMyTickets);

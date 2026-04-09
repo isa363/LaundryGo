@@ -1,5 +1,6 @@
 package com.example.laundryproject.home;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -13,6 +14,7 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -34,6 +36,7 @@ public class TicketChatActivity extends AppCompatActivity {
     private Button btnCloseTicket;
     private Button btnDeleteTicket;
     private ProgressBar progressBar;
+    private Toolbar toolbar;
 
     private TicketRepository ticketRepository;
     private TicketMessageAdapter messageAdapter;
@@ -51,10 +54,16 @@ public class TicketChatActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ticket_chat);
 
+        toolbar = findViewById(R.id.toolbarTicketChat);
+        setSupportActionBar(toolbar);
+
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("Ticket Details");
+            toolbar.setTitleTextColor(Color.BLACK);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
+
+        toolbar.setNavigationOnClickListener(v -> finish());
 
         tvChatSubject = findViewById(R.id.tvChatSubject);
         tvChatStatus = findViewById(R.id.tvChatStatus);
