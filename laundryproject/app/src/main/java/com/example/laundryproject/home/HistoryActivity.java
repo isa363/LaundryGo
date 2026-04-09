@@ -23,7 +23,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -35,7 +34,10 @@ public class HistoryActivity extends AppCompatActivity {
     private final List<HistoryItem> historyList = new ArrayList<>();
 
     private final UserRepository userRepository = new UserRepository();
+
     private String currentBuildingCode;
+    private String currentApartment;
+    private String currentUid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +82,10 @@ public class HistoryActivity extends AppCompatActivity {
         }
     }
 
+    private void setupBottomNav() {
+        BottomNavHelper.setup(this, R.id.bottomNav, R.id.nav_history);
+    }
+
     private void loadCurrentUserAndHistory() {
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
 
@@ -88,6 +94,8 @@ public class HistoryActivity extends AppCompatActivity {
             finish();
             return;
         }
+
+        currentUid = firebaseUser.getUid();
 
         userRepository.getUser(firebaseUser.getUid(), new UserRepository.LoadUserCallback() {
             @Override
@@ -100,7 +108,9 @@ public class HistoryActivity extends AppCompatActivity {
                 }
 
                 currentBuildingCode = user.buildingCode.trim();
-                loadHistoryForBuilding(currentBuildingCode);
+                currentApartment = user.aptNumber != null ? user.aptNumber.trim() : null;
+
+                loadHistoryForUser(currentBuildingCode, currentApartment, currentUid);
             }
 
             @Override
@@ -110,11 +120,8 @@ public class HistoryActivity extends AppCompatActivity {
             }
         });
     }
-    private void setupBottomNav() {
-        BottomNavHelper.setup(this, R.id.bottomNav, R.id.nav_history);
-    }
 
-    private void loadHistoryForBuilding(String buildingCode) {
+    private void loadHistoryForUser(String buildingCode, String apartment, String uid) {
         FirebaseDatabase.getInstance()
                 .getReference("machines")
                 .addValueEventListener(new ValueEventListener() {
@@ -136,18 +143,43 @@ public class HistoryActivity extends AppCompatActivity {
                                 machineName = machineId != null ? machineId : "Unknown Machine";
                             }
 
+                            Double machinePrice = machine.child("price").getValue(Double.class);
+
                             DataSnapshot historySnapshot = machine.child("history");
                             for (DataSnapshot entry : historySnapshot.getChildren()) {
                                 Long epoch = entry.child("epoch").getValue(Long.class);
                                 Double duration = entry.child("durationMin").getValue(Double.class);
-                                Double cost = entry.child("costUSD").getValue(Double.class);
+                                Double storedCost = entry.child("costUSD").getValue(Double.class);
 
                                 if (epoch == null) {
                                     continue;
                                 }
 
+                                String entryUid = entry.child("uid").getValue(String.class);
+                                String entryApt = entry.child("aptNumber").getValue(String.class);
+                                String entryBuilding = entry.child("buildingCode").getValue(String.class);
+
+                                if (entryBuilding != null && !entryBuilding.equals(buildingCode)) {
+                                    continue;
+                                }
+
+                                boolean belongsToUser = false;
+                                if (entryUid != null && entryUid.equals(uid)) {
+                                    belongsToUser = true;
+                                } else if (entryApt != null && apartment != null && entryApt.equals(apartment)) {
+                                    belongsToUser = true;
+                                }
+
+                                if (!belongsToUser) {
+                                    continue;
+                                }
+
+                                if (storedCost == null && machinePrice == null) {
+                                    continue;
+                                }
+
                                 double safeDuration = duration != null ? duration : 0.0;
-                                double safeCost = cost != null ? cost : 0.0;
+                                double safeCost = storedCost != null ? storedCost : machinePrice;
 
                                 historyList.add(new HistoryItem(machineName, epoch, safeDuration, safeCost));
                                 totalSpent += safeCost;
