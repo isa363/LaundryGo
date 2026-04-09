@@ -115,6 +115,8 @@ public class MainActivity extends AppCompatActivity {
         BottomNavHelper.setup(this, R.id.bottomNav, R.id.nav_machines);
 
         createNotificationChannel();
+        FcmTokenHelper.syncCurrentUserToken();
+
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
@@ -155,12 +157,15 @@ public class MainActivity extends AppCompatActivity {
                                     String name = child.child("machineName").getValue(String.class);
                                     Long epoch = child.child("epoch").getValue(Long.class);
                                     String ts = child.child("timestamp").getValue(String.class);
+                                    Double price = child.child("price").getValue(Double.class);
+                                    String buildingCode = child.child("buildingCode").getValue(String.class);
+
 
                                     if (state == null) state = "DISCONNECTED";
                                     if (name == null) name = id;
                                     if (epoch == null) epoch = 0L;
 
-                                    MachineItem item = new MachineItem(id, name, state, epoch, ts);
+                                    MachineItem item = new MachineItem( id,  name, state, epoch, ts, price != null ? price : 0.0, buildingCode);
                                     item.lastUpdatedAt = System.currentTimeMillis();
                                     machineList.add(item);
 
@@ -230,6 +235,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_logout) {
+            FcmTokenHelper.clearCurrentUserToken();
             authManager.signOut();
 
             Intent intent = new Intent(this, LoginActivity.class);
