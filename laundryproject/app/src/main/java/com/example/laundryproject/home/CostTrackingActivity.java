@@ -108,7 +108,7 @@ public class CostTrackingActivity extends AppCompatActivity {
                     public void onDataChange(DataSnapshot snapshot) {
                         historyList.clear();
 
-                        double monthlyTotal = 0;
+                        double monthlyTotal = 0.0;
                         int sessionCount = 0;
 
                         Calendar now = Calendar.getInstance();
@@ -147,6 +147,10 @@ public class CostTrackingActivity extends AppCompatActivity {
                                     continue;
                                 }
 
+                                boolean hasUserFields =
+                                        (entryUid != null && !entryUid.trim().isEmpty()) ||
+                                                (entryApt != null && !entryApt.trim().isEmpty());
+
                                 boolean belongsToUser = false;
                                 if (entryUid != null && entryUid.equals(uid)) {
                                     belongsToUser = true;
@@ -154,7 +158,9 @@ public class CostTrackingActivity extends AppCompatActivity {
                                     belongsToUser = true;
                                 }
 
-                                if (!belongsToUser) {
+                                // New records with user fields -> enforce user-specific filter
+                                // Old records without user fields -> allow building fallback
+                                if (hasUserFields && !belongsToUser) {
                                     continue;
                                 }
 

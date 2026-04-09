@@ -110,7 +110,7 @@ public class HistoryActivity extends AppCompatActivity {
                 currentBuildingCode = user.buildingCode.trim();
                 currentApartment = user.aptNumber != null ? user.aptNumber.trim() : null;
 
-                loadHistoryForUser(currentBuildingCode, currentApartment, currentUid);
+                loadHistoryMerged(currentBuildingCode, currentApartment, currentUid);
             }
 
             @Override
@@ -121,7 +121,7 @@ public class HistoryActivity extends AppCompatActivity {
         });
     }
 
-    private void loadHistoryForUser(String buildingCode, String apartment, String uid) {
+    private void loadHistoryMerged(String buildingCode, String apartment, String uid) {
         FirebaseDatabase.getInstance()
                 .getReference("machines")
                 .addValueEventListener(new ValueEventListener() {
@@ -163,6 +163,10 @@ public class HistoryActivity extends AppCompatActivity {
                                     continue;
                                 }
 
+                                boolean hasUserFields =
+                                        (entryUid != null && !entryUid.trim().isEmpty()) ||
+                                                (entryApt != null && !entryApt.trim().isEmpty());
+
                                 boolean belongsToUser = false;
                                 if (entryUid != null && entryUid.equals(uid)) {
                                     belongsToUser = true;
@@ -170,7 +174,9 @@ public class HistoryActivity extends AppCompatActivity {
                                     belongsToUser = true;
                                 }
 
-                                if (!belongsToUser) {
+                                // New records with user fields -> enforce user-specific filter
+                                // Old records without user fields -> allow building fallback
+                                if (hasUserFields && !belongsToUser) {
                                     continue;
                                 }
 

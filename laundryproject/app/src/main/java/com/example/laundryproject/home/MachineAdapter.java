@@ -51,7 +51,7 @@ public class MachineAdapter extends RecyclerView.Adapter<MachineAdapter.ViewHold
         // Price from Firebase machine node — fallback 2.50 if not set
         double priceValue = 2.50; // default fallback
 
-        if (item.price != null && item.price > 0) {
+        if ( item.price > 0) {
              priceValue = item.price;
        }
 
