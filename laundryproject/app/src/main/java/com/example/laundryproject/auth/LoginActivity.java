@@ -10,21 +10,21 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.laundryproject.R;
+import com.example.laundryproject.data.UserRepository;
+import com.example.laundryproject.home.AdminActivity;
 import com.example.laundryproject.home.HomeActivity;
-import com.example.laundryproject.home.MainActivity;
+import com.example.laundryproject.model.User;
 import com.example.laundryproject.util.ValidationUtils;
 import com.google.firebase.auth.FirebaseUser;
-
-// This class handles the Login page.
-// Handles verifying if user's email is verified and redirecting to main page.
-// Also allows navigation to register page and forgot password page.
 
 public class LoginActivity extends AppCompatActivity {
 
     private EditText emailEditText, passwordEditText;
     private TextView toRedirect, forgotPasswordTextEdit;
     private Button loginButton;
+
     private AuthManager authManager;
+    private UserRepository userRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +32,7 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.login_page);
 
         authManager = new AuthManager();
+        userRepository = new UserRepository();
 
         emailEditText = findViewById(R.id.login_emailEditText);
         passwordEditText = findViewById(R.id.login_passwordEditText);
@@ -57,13 +58,7 @@ public class LoginActivity extends AppCompatActivity {
 
         FirebaseUser currentUser = authManager.getCurrentUser();
         if (currentUser != null) {
-            currentUser.reload().addOnCompleteListener(task -> {
-                FirebaseUser refreshedUser = authManager.getCurrentUser();
-                if (refreshedUser != null && refreshedUser.isEmailVerified()) {
-                    startActivity(new Intent(LoginActivity.this, HomeActivity.class));
-                    finish();
-                }
-            });
+            handleLoggedInUser(currentUser);
         }
     }
 
@@ -84,25 +79,77 @@ public class LoginActivity extends AppCompatActivity {
         authManager.loginUser(email, password, new AuthManager.AuthCallback() {
             @Override
             public void onSuccess(FirebaseUser user) {
-                user.reload().addOnCompleteListener(task -> {
-                    FirebaseUser refreshedUser = authManager.getCurrentUser();
-
-                    if (refreshedUser != null && refreshedUser.isEmailVerified()) {
-                        startActivity(new Intent(LoginActivity.this, HomeActivity.class));
-                        finish();
-                    } else {
-                        authManager.signOut();
-                        Toast.makeText(LoginActivity.this,
-                                "Please verify your email before logging in.",
-                                Toast.LENGTH_LONG).show();
-                    }
-                });
+                handleLoggedInUser(user);
             }
 
             @Override
             public void onFailure(String errorMessage) {
                 Toast.makeText(LoginActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
+        });
+    }
+
+    private void handleLoggedInUser(FirebaseUser user) {
+        user.reload().addOnCompleteListener(task -> {
+            FirebaseUser refreshedUser = authManager.getCurrentUser();
+
+            if (refreshedUser == null) {
+                Toast.makeText(LoginActivity.this,
+                        "Login failed. Please try again.",
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (!refreshedUser.isEmailVerified()) {
+                authManager.signOut();
+                Toast.makeText(LoginActivity.this,
+                        "Please verify your email before logging in.",
+                        Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            userRepository.getUser(refreshedUser.getUid(), new UserRepository.LoadUserCallback() {
+                @Override
+                public void onSuccess(User user) {
+                    if (user == null) {
+                        authManager.signOut();
+                        Toast.makeText(LoginActivity.this,
+                                "User profile not found.",
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    if (!user.enabled) {
+                        authManager.signOut();
+                        Toast.makeText(LoginActivity.this,
+                                "Your account is not enabled yet. Please contact admin.",
+                                Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
+                    String accountType = user.accountType != null
+                            ? user.accountType.trim()
+                            : "";
+
+                    Intent intent;
+
+                    if (accountType.equalsIgnoreCase("Admin")) {
+                        intent = new Intent(LoginActivity.this, AdminActivity.class);
+                    } else {
+                        intent = new Intent(LoginActivity.this, HomeActivity.class);
+                    }
+
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                }
+
+                @Override
+                public void onFailure(String errorMessage) {
+                    authManager.signOut();
+                    Toast.makeText(LoginActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+                }
+            });
         });
     }
 }
