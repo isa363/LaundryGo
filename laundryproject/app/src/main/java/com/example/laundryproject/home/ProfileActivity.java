@@ -32,6 +32,7 @@ public class ProfileActivity extends AppCompatActivity
     private TextView bldgcodeView;
     private Button saveBtn;
     private Button submitTicketBtn;
+    private Button btnInsights;
     private Button myTicketsBtn;
 
     private LinearLayout emailRow;
@@ -122,6 +123,7 @@ public class ProfileActivity extends AppCompatActivity
         apt = findViewById(R.id.apt);
         bldgcodeView = findViewById(R.id.bldgcodeView);
         saveBtn = findViewById(R.id.saveBtn);
+        btnInsights = findViewById(R.id.btnInsights);
         submitTicketBtn = findViewById(R.id.submitTicketBtn);
         myTicketsBtn = findViewById(R.id.myTicketsBtn);
         closedTicketsBtn = findViewById(R.id.closedTicketsBtn);
@@ -193,6 +195,11 @@ public class ProfileActivity extends AppCompatActivity
 
         myTicketsBtn.setOnClickListener(v -> {
             Intent intent = new Intent(ProfileActivity.this, MyTicketsActivity.class);
+            startActivity(intent);
+        });
+
+        btnInsights.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, CostTrackingActivity.class);
             startActivity(intent);
         });
 
