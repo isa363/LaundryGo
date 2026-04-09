@@ -14,7 +14,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Laundryproject">
-
+        <activity
+            android:name=".home.AdminAnalyticsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".home.AdminAnalyticsCalculator"
+            android:exported="false" />
         <activity
             android:name=".home.HomeActivity"
             android:exported="false" />
@@ -35,7 +40,7 @@
         <activity
             android:name=".home.TicketChatActivity"
             android:exported="false"
-            android:windowSoftInputMode="adjustResize"/>
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".home.AdminViewTicketsActivity"
             android:exported="false" />

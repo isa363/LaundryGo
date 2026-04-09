@@ -144,6 +144,32 @@
                 android:textSize="13sp"
                 android:layout_marginBottom="16dp" />
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ANALYTICS"
+                android:textColor="#999999"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="6dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginBottom="8dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/admin_analyticsButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Analytics Dashboard"
+                    android:textColor="@android:color/white"
+                    app:backgroundTint="#1a56a0" />
+            </LinearLayout>
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/admin_logoutButton"
                 android:layout_width="match_parent"

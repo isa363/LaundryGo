@@ -34,6 +34,7 @@ public class AdminActivity extends AppCompatActivity {
     private Button editBuildingCodeButton;
 
     private TextView buildingCodesTextView;
+    private Button analyticsButton;
 
     private String adminBuildingName; // The building assigned to this admin
 
@@ -111,6 +112,7 @@ public class AdminActivity extends AppCompatActivity {
         viewTicketsButton = findViewById(R.id.admin_viewTicketsButton);
         editBuildingCodeButton = findViewById(R.id.admin_editBuildingCodeButton);
         viewClosedTicketsButton = findViewById(R.id.admin_viewClosedTicketsButton);
+        analyticsButton = findViewById(R.id.admin_analyticsButton);
 
         buildingCodesTextView = findViewById(R.id.admin_buildingCodesTextView);
 
@@ -140,6 +142,12 @@ public class AdminActivity extends AppCompatActivity {
 
         viewTicketsButton.setOnClickListener(v -> {
             Intent intent = new Intent(AdminActivity.this, AdminViewTicketsActivity.class);
+            intent.putExtra("adminBuilding", adminBuildingName);
+            startActivity(intent);
+        });
+
+        analyticsButton.setOnClickListener(v -> {
+            Intent intent = new Intent(AdminActivity.this, AdminAnalyticsActivity.class);
             intent.putExtra("adminBuilding", adminBuildingName);
             startActivity(intent);
         });
