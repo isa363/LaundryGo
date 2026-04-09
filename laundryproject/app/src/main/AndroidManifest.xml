@@ -15,6 +15,14 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Laundryproject">
 
+        <service
+            android:name=".LaundryFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
         <activity
             android:name=".home.HomeActivity"
             android:exported="false" />
@@ -55,32 +63,31 @@
             android:exported="true">
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data
                     android:host="laundryproject-ecf27.firebaseapp.com"
                     android:pathPrefix="/__/auth/links"
                     android:scheme="https" />
             </intent-filter>
-        </activity> <!-- Starting screens -->
-        <!-- Auth screens -->
+        </activity>
+
         <activity
             android:name=".auth.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".auth.RegisterActivity"
             android:exported="false" />
         <activity
             android:name=".auth.ForgotPasswordActivity"
-            android:exported="false" /> <!-- Main app screens -->
+            android:exported="false" />
+
         <activity
             android:name=".home.MainActivity"
             android:exported="false" />
@@ -110,6 +117,22 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".home.MainActivity" />
+        </activity>
+        <activity
+            android:name=".home.CostTrackingActivity"
+            android:exported="false"
+            android:parentActivityName=".home.ProfileActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".home.ProfileActivity" />
+        </activity>
+        <activity
+            android:name=".home.AdminAnalyticsActivity"
+            android:exported="false"
+            android:parentActivityName=".home.AdminActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".home.AdminActivity" />
         </activity>
     </application>
 
