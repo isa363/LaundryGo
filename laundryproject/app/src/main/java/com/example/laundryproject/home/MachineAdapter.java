@@ -49,9 +49,13 @@ public class MachineAdapter extends RecyclerView.Adapter<MachineAdapter.ViewHold
                 (GradientDrawable) h.circle.getBackground();
 
         // Price from Firebase machine node — fallback 2.50 if not set
-        String priceText = item.price > 0
-                ? String.format(Locale.US, "$%.2f CAD", item.price)
-                : "$2.50 CAD";
+        double priceValue = 2.50; // default fallback
+
+        if (item.price != null && item.price > 0) {
+             priceValue = item.price;
+       }
+
+        String priceText = String.format(Locale.US, "$%.2f CAD", priceValue);
 
         if ("RUNNING".equalsIgnoreCase(item.state)) {
             gd.setColor(Color.parseColor("#FF9800"));
