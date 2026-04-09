@@ -1,8 +1,10 @@
 package com.example.laundryproject.home;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,6 +29,7 @@ public class MyTicketsActivity extends AppCompatActivity {
     private RecyclerView recyclerViewTickets;
     private ProgressBar progressBar;
     private TextView tvEmpty;
+    private LinearLayout emptyContainer;
     private Toolbar toolbar;
 
     private TicketAdapter ticketAdapter;
@@ -45,15 +48,16 @@ public class MyTicketsActivity extends AppCompatActivity {
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("My Tickets");
-            toolbar.setTitleTextColor(android.graphics.Color.BLACK);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
+        toolbar.setTitleTextColor(Color.BLACK);
         toolbar.setNavigationOnClickListener(v -> finish());
 
         recyclerViewTickets = findViewById(R.id.recyclerViewMyTickets);
         progressBar = findViewById(R.id.progressMyTickets);
         tvEmpty = findViewById(R.id.tvEmptyMyTickets);
+        emptyContainer = findViewById(R.id.tvEmptyMyTicketsContainer);
 
         ticketRepository = new TicketRepository();
 
@@ -81,20 +85,39 @@ public class MyTicketsActivity extends AppCompatActivity {
         }
 
         progressBar.setVisibility(View.VISIBLE);
+        recyclerViewTickets.setVisibility(View.VISIBLE);
+        emptyContainer.setVisibility(View.GONE);
 
         ticketListener = ticketRepository.listenForUserTickets(uid, new TicketRepository.TicketListCallback() {
             @Override
             public void onSuccess(List<Ticket> tickets) {
                 progressBar.setVisibility(View.GONE);
+
                 ticketList.clear();
                 ticketList.addAll(tickets);
                 ticketAdapter.notifyDataSetChanged();
-                tvEmpty.setVisibility(ticketList.isEmpty() ? View.VISIBLE : View.GONE);
+
+                if (ticketList.isEmpty()) {
+                    recyclerViewTickets.setVisibility(View.GONE);
+                    emptyContainer.setVisibility(View.VISIBLE);
+                } else {
+                    recyclerViewTickets.setVisibility(View.VISIBLE);
+                    emptyContainer.setVisibility(View.GONE);
+                }
             }
 
             @Override
             public void onFailure(String error) {
                 progressBar.setVisibility(View.GONE);
+
+                if (ticketList.isEmpty()) {
+                    recyclerViewTickets.setVisibility(View.GONE);
+                    emptyContainer.setVisibility(View.VISIBLE);
+                } else {
+                    recyclerViewTickets.setVisibility(View.VISIBLE);
+                    emptyContainer.setVisibility(View.GONE);
+                }
+
                 Toast.makeText(MyTicketsActivity.this, "Error: " + error, Toast.LENGTH_LONG).show();
             }
         });
