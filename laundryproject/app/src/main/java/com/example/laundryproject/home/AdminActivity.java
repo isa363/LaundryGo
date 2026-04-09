@@ -14,6 +14,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.laundryproject.R;
+import com.example.laundryproject.FcmTokenHelper
 import com.example.laundryproject.auth.AuthManager;
 import com.example.laundryproject.auth.LoginActivity;
 import com.example.laundryproject.data.UserRepository;
@@ -32,6 +33,7 @@ public class AdminActivity extends AppCompatActivity {
     private Button viewMachinesButton;
     private Button viewTicketsButton;
     private Button editBuildingCodeButton;
+    private Button analyticsButton;
 
     private TextView buildingCodesTextView;
 
@@ -110,11 +112,13 @@ public class AdminActivity extends AppCompatActivity {
         viewMachinesButton = findViewById(R.id.admin_viewMachinesButton);
         viewTicketsButton = findViewById(R.id.admin_viewTicketsButton);
         editBuildingCodeButton = findViewById(R.id.admin_editBuildingCodeButton);
+        analyticsButton        = findViewById(R.id.admin_analyticsButton);
         viewClosedTicketsButton = findViewById(R.id.admin_viewClosedTicketsButton);
 
         buildingCodesTextView = findViewById(R.id.admin_buildingCodesTextView);
 
         logoutButton.setOnClickListener(v -> {
+            FcmTokenHelper.clearCurrentUserToken();
             authManager.signOut();
             Toast.makeText(AdminActivity.this, "Logged out successfully", Toast.LENGTH_SHORT).show();
             redirectToLogin();
@@ -145,6 +149,9 @@ public class AdminActivity extends AppCompatActivity {
         });
 
         editBuildingCodeButton.setOnClickListener(v -> showEditBuildingCodeDialog());
+
+        analyticsButton.setOnClickListener(v ->
+                startActivity(new Intent(AdminActivity.this, AdminAnalyticsActivity.class)));
 
         loadAdminBuilding();
     }
