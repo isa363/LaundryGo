@@ -4,52 +4,84 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:fitsSystemWindows="true"
-    android:padding="12dp">
+    android:background="#F5F7FB"
+    android:fitsSystemWindows="true">
 
-    <TextView
-        android:id="@+id/tvChatSubject"
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbarTicketChat"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Subject"
-        android:textSize="20sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/tvChatStatus"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="Status: -" />
-
-    <TextView
-        android:id="@+id/tvChatInfo"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="Info" />
+        android:layout_height="?attr/actionBarSize"
+        android:background="#FFFFFF"
+        android:elevation="6dp"
+        android:title="Ticket Details"
+        android:titleTextColor="#000000"
+        app:navigationIcon="@drawable/baseline_arrow_back_24"
+        app:navigationIconTint="#000000" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:orientation="horizontal">
+        android:layout_margin="12dp"
+        android:orientation="vertical"
+        android:background="#FFFFFF"
+        android:elevation="2dp"
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/tvChatSubject"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Subject"
+            android:textColor="#111111"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvChatStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="Status: -"
+            android:textColor="#666666" />
+
+        <TextView
+            android:id="@+id/tvChatInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Info"
+            android:textColor="#777777" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="6dp"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp">
 
         <Button
             android:id="@+id/btnCloseTicket"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:layout_weight="1"
-            android:text="Close Ticket"
+            android:backgroundTint="#4CAF50"
+            android:text="Close"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
             android:visibility="gone" />
 
         <Button
             android:id="@+id/btnDeleteTicket"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:layout_weight="1"
             android:layout_marginStart="8dp"
-            android:text="Delete Ticket"
+            android:backgroundTint="#E53935"
+            android:text="Delete"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
             android:visibility="gone" />
     </LinearLayout>
 
@@ -57,47 +89,47 @@
         android:id="@+id/progressTicketChat"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_gravity="center"
         android:visibility="gone" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewTicketMessages"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="12dp"
         android:layout_weight="1"
         android:clipToPadding="false"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
         android:paddingBottom="8dp" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:background="@android:color/transparent"
+        android:background="#FFFFFF"
+        android:elevation="8dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="4dp">
+        android:padding="8dp">
 
         <EditText
             android:id="@+id/etReplyMessage"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_weight="1"
-            android:background="@android:color/transparent"
-            android:padding="10dp"
-            android:textColor="#FFFFFF"
-            android:textColorHint="#777777"
-            android:hint="Type your message"
-            android:inputType="textMultiLine"
-            android:maxLines="4"
-            android:minHeight="48dp" />
+            android:background="@android:drawable/edit_text"
+            android:hint="Type a message..."
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:textColor="#000000"
+            android:textColorHint="#888888" />
 
         <ImageButton
             android:id="@+id/btnSendReply"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
             android:layout_marginStart="6dp"
-            android:background="@android:color/transparent"
+            android:background="@android:drawable/btn_default"
+            android:backgroundTint="#1976D2"
             android:contentDescription="Send"
             android:src="@android:drawable/ic_menu_send"
             app:tint="#FFFFFF" />

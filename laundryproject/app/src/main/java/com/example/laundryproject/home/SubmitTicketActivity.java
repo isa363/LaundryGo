@@ -1,17 +1,22 @@
 package com.example.laundryproject.home;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import com.example.laundryproject.R;
 import com.example.laundryproject.data.TicketRepository;
@@ -22,6 +27,7 @@ public class SubmitTicketActivity extends AppCompatActivity {
     private Spinner spinnerCategory;
     private Button btnSubmitTicket;
     private ProgressBar progressBar;
+    private Toolbar toolbar;
 
     private TicketRepository ticketRepository;
 
@@ -30,10 +36,16 @@ public class SubmitTicketActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_submit_ticket);
 
+        toolbar = findViewById(R.id.toolbarSubmitTicket);
+        setSupportActionBar(toolbar);
+
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("Submit Ticket");
+            toolbar.setTitleTextColor(Color.BLACK);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
+
+        toolbar.setNavigationOnClickListener(v -> finish());
 
         etSubject = findViewById(R.id.etTicketSubject);
         etMessage = findViewById(R.id.etTicketMessage);
@@ -57,11 +69,31 @@ public class SubmitTicketActivity extends AppCompatActivity {
                 "Other"
         };
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(
                 this,
                 android.R.layout.simple_spinner_item,
                 categories
-        );
+        ) {
+            @NonNull
+            @Override
+            public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+                View view = super.getView(position, convertView, parent);
+                TextView textView = (TextView) view.findViewById(android.R.id.text1);
+                textView.setTextColor(Color.BLACK);
+                textView.setTextSize(16f);
+                return view;
+            }
+
+            @Override
+            public View getDropDownView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+                View view = super.getDropDownView(position, convertView, parent);
+                TextView textView = (TextView) view.findViewById(android.R.id.text1);
+                textView.setTextColor(Color.WHITE);
+                textView.setTextSize(16f);
+                return view;
+            }
+        };
+
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCategory.setAdapter(adapter);
     }
