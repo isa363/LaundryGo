@@ -68,11 +68,43 @@ public class AdminViewMachinesActivity extends AppCompatActivity {
                 machineList.clear();
 
                 for (DataSnapshot child : snapshot.getChildren()) {
-                    MachineItem m = child.getValue(MachineItem.class);
 
-                    if (m != null && m.buildingCode.equals(adminBuilding)) {
-                        machineList.add(m);
+                    if (!child.hasChild("buildingCode") && !child.hasChild("machineName")) {
+                        continue;
                     }
+
+                    String id = child.child("machineId").getValue(String.class);
+                    if (id == null) {
+                        id = child.child("machineID").getValue(String.class);
+                    }
+                    if (id == null) {
+                        id = child.getKey();
+                    }
+
+                    String name = child.child("machineName").getValue(String.class);
+                    String state = child.child("state").getValue(String.class);
+                    String building = child.child("buildingCode").getValue(String.class);
+                    String timestamp = child.child("timestamp").getValue(String.class);
+
+                    Long epoch = child.child("epochStart").getValue(Long.class);
+                    if (epoch == null) {
+                        epoch = child.child("epoch").getValue(Long.class);
+                    }
+                    if (epoch == null) {
+                        epoch = 0L;
+                    }
+
+                    Double price = child.child("price").getValue(Double.class);
+                    if (price == null) {
+                        price = 0.0;
+                    }
+
+                    if (building == null || !building.equals(adminBuilding)) {
+                        continue;
+                    }
+
+                    MachineItem m = new MachineItem(id, name, state, epoch, timestamp, price, building);
+                    machineList.add(m);
                 }
 
                 adapter.notifyDataSetChanged();
