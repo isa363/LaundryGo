@@ -9,23 +9,22 @@ import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-
 import com.example.laundryproject.R;
 
 import java.util.List;
 import java.util.Locale;
 
-
 public class MachineAdapter extends RecyclerView.Adapter<MachineAdapter.ViewHolder> {
+
     public interface OnClickListener {
         void onClick(MachineItem machine);
     }
 
-    private List<MachineItem> items;
-    private OnClickListener listener;
+    private final List<MachineItem> items;
+    private final OnClickListener listener;
 
     public MachineAdapter(List<MachineItem> items, OnClickListener listener) {
-        this.items    = items;
+        this.items = items;
         this.listener = listener;
     }
 
@@ -44,8 +43,10 @@ public class MachineAdapter extends RecyclerView.Adapter<MachineAdapter.ViewHold
         h.machineId.setText(item.machineId);
         h.stateText.setText(item.state);
 
-        GradientDrawable gd =
-                (GradientDrawable) h.circle.getBackground();
+        GradientDrawable gd = (GradientDrawable) h.circle.getBackground();
+
+        double priceValue = item.price > 0 ? item.price : 2.50;
+        String priceText = String.format(Locale.US, "$%.2f CAD", priceValue);
 
         if ("RUNNING".equalsIgnoreCase(item.state)) {
             gd.setColor(Color.parseColor("#FF9800"));
@@ -53,17 +54,16 @@ public class MachineAdapter extends RecyclerView.Adapter<MachineAdapter.ViewHold
             h.stateText.setTextColor(Color.parseColor("#FF9800"));
             h.timer.setVisibility(View.VISIBLE);
             h.timer.setText(formatTime(item.elapsedSeconds));
-            h.cost.setText("$2.50 CAD");
+            h.cost.setText(priceText);
 
         } else if ("AVAILABLE".equalsIgnoreCase(item.state)) {
             gd.setColor(Color.parseColor("#4CAF50"));
             gd.setStroke(6, Color.parseColor("#1B5E20"));
             h.stateText.setTextColor(Color.parseColor("#4CAF50"));
             h.timer.setVisibility(View.GONE);
-            h.cost.setText("—");
+            h.cost.setText(priceText);
 
         } else {
-            // DISCONNECTED
             gd.setColor(Color.parseColor("#9E9E9E"));
             gd.setStroke(6, Color.parseColor("#616161"));
             h.stateText.setTextColor(Color.parseColor("#9E9E9E"));
@@ -87,18 +87,17 @@ public class MachineAdapter extends RecyclerView.Adapter<MachineAdapter.ViewHold
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        View     circle;
+        View circle;
         TextView machineName, machineId, stateText, timer, cost;
 
         ViewHolder(View v) {
             super(v);
-            circle      = v.findViewById(R.id.cardStatusCircle);
+            circle = v.findViewById(R.id.cardStatusCircle);
             machineName = v.findViewById(R.id.cardMachineName);
-            machineId   = v.findViewById(R.id.cardMachineId);
-            stateText   = v.findViewById(R.id.cardStateText);
-            timer       = v.findViewById(R.id.cardTimer);
-            cost        = v.findViewById(R.id.cardCost);
+            machineId = v.findViewById(R.id.cardMachineId);
+            stateText = v.findViewById(R.id.cardStateText);
+            timer = v.findViewById(R.id.cardTimer);
+            cost = v.findViewById(R.id.cardCost);
         }
     }
-
 }

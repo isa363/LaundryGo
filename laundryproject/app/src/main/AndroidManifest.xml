@@ -126,6 +126,15 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".home.MainActivity" />
         </activity>
+
+        <activity
+            android:name=".home.CostTrackingActivity"
+            android:exported="false"
+            android:parentActivityName=".home.ProfileActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".home.ProfileActivity" />
+        </activity>
     </application>
 
 </manifest>

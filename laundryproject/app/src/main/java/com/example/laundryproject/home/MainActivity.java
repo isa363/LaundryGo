@@ -1,9 +1,5 @@
 package com.example.laundryproject.home;
 
-import com.example.laundryproject.R;
-import com.example.laundryproject.data.UserRepository;
-import com.example.laundryproject.model.User;
-
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -13,6 +9,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,8 +19,13 @@ import androidx.core.app.NotificationCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.laundryproject.FcmTokenHelper;
+import com.example.laundryproject.R;
+import com.example.laundryproject.auth.AuthManager;
+import com.example.laundryproject.auth.LoginActivity;
+import com.example.laundryproject.data.UserRepository;
+import com.example.laundryproject.model.User;
 import com.google.android.material.appbar.MaterialToolbar;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -37,13 +40,13 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
 
     private RecyclerView recyclerMachines;
-    private TextView tvWelcome, tvAvatar;
+    private TextView tvWelcome;
 
     private MachineAdapter adapter;
-    private List<MachineItem> machineList = new ArrayList<>();
-    private Map<String, String> previousStates = new HashMap<>();
+    private final List<MachineItem> machineList = new ArrayList<>();
+    private final Map<String, String> previousStates = new HashMap<>();
 
-    private Handler timerHandler = new Handler(Looper.getMainLooper());
+    private final Handler timerHandler = new Handler(Looper.getMainLooper());
     private Runnable timerRunnable;
 
     private long lastDataReceivedAt = 0;
@@ -51,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
     private static final long CHECK_INTERVAL_MS = 5000;
     private final Handler staleHandler = new Handler(Looper.getMainLooper());
 
+    private AuthManager authManager;
     private UserRepository userRepository;
 
     private final Runnable staleCheckRunnable = new Runnable() {
@@ -76,29 +80,22 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        authManager = new AuthManager();
         userRepository = new UserRepository();
 
         MaterialToolbar toolbar = findViewById(R.id.topAppBar);
         setSupportActionBar(toolbar);
 
         tvWelcome = findViewById(R.id.tvWelcome);
-
-        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (firebaseUser != null && firebaseUser.getEmail() != null) {
-            String username = firebaseUser.getEmail().split("@")[0];
-            String initial = String.valueOf(username.charAt(0)).toUpperCase();
-            tvWelcome.setText("Welcome, " + username);
-        }
-
         recyclerMachines = findViewById(R.id.recyclerMachines);
+
         recyclerMachines.setLayoutManager(new LinearLayoutManager(this));
 
         adapter = new MachineAdapter(machineList, machine -> {
-            Intent intent = new Intent(this, MachineDetailActivity.class);
+            Intent intent = new Intent(MainActivity.this, MachineDetailActivity.class);
             intent.putExtra("MACHINE_ID", machine.machineId);
             intent.putExtra("MACHINE_NAME", machine.machineName);
-            intent.putExtra("MACHINE_EPOCH",
-                    machine.epochStart != null ? machine.epochStart : 0L);
+            intent.putExtra("MACHINE_EPOCH", machine.epochStart != null ? machine.epochStart : 0L);
             startActivity(intent);
         });
 
@@ -107,26 +104,48 @@ public class MainActivity extends AppCompatActivity {
         BottomNavHelper.setup(this, R.id.bottomNav, R.id.nav_machines);
 
         createNotificationChannel();
+        FcmTokenHelper.syncCurrentUserToken();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
                     != android.content.pm.PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(
-                        new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1);
+                        new String[]{android.Manifest.permission.POST_NOTIFICATIONS},
+                        1
+                );
             }
+        }
+
+        FirebaseUser firebaseUser = authManager.getCurrentUser();
+        if (firebaseUser == null) {
+            redirectToLogin();
+            return;
+        }
+
+        if (firebaseUser.getEmail() != null) {
+            String username = firebaseUser.getEmail().split("@")[0];
+            tvWelcome.setText("Welcome, " + username);
         }
 
         loadMachines();
     }
 
     private void loadMachines() {
-        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (firebaseUser == null) return;
+        FirebaseUser firebaseUser = authManager.getCurrentUser();
+        if (firebaseUser == null) {
+            redirectToLogin();
+            return;
+        }
 
         userRepository.getUser(firebaseUser.getUid(), new UserRepository.LoadUserCallback() {
             @Override
             public void onSuccess(User user) {
-                if (user == null || user.buildingCode == null) return;
+                if (user == null || user.buildingCode == null || user.buildingCode.trim().isEmpty()) {
+                    Toast.makeText(MainActivity.this,
+                            "Could not determine your building.",
+                            Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
                 FirebaseDatabase.getInstance()
                         .getReference("machines")
@@ -147,12 +166,23 @@ public class MainActivity extends AppCompatActivity {
                                     String name = child.child("machineName").getValue(String.class);
                                     Long epoch = child.child("epoch").getValue(Long.class);
                                     String ts = child.child("timestamp").getValue(String.class);
+                                    Double price = child.child("price").getValue(Double.class);
+                                    String buildingCode = child.child("buildingCode").getValue(String.class);
 
                                     if (state == null) state = "DISCONNECTED";
-                                    if (name == null) name = id;
+                                    if (name == null || name.trim().isEmpty()) name = id;
                                     if (epoch == null) epoch = 0L;
 
-                                    MachineItem item = new MachineItem(id, name, state, epoch, ts);
+                                    MachineItem item = new MachineItem(
+                                            id,
+                                            name,
+                                            state,
+                                            epoch,
+                                            ts,
+                                            price != null ? price : 0.0,
+                                            buildingCode
+                                    );
+
                                     item.lastUpdatedAt = System.currentTimeMillis();
                                     machineList.add(item);
 
@@ -163,12 +193,15 @@ public class MainActivity extends AppCompatActivity {
                                     if ("RUNNING".equalsIgnoreCase(prev)
                                             && "AVAILABLE".equalsIgnoreCase(state)) {
 
-                                        SharedPreferences prefs = getSharedPreferences("notif_prefs", MODE_PRIVATE);
+                                        SharedPreferences prefs =
+                                                getSharedPreferences("notif_prefs", MODE_PRIVATE);
                                         boolean subscribed = prefs.getBoolean(id, false);
 
                                         if (subscribed) {
-                                            showNotification(name + " is done!",
-                                                    "Your laundry is ready to pick up.");
+                                            showNotification(
+                                                    name + " is done!",
+                                                    "Your laundry is ready to pick up."
+                                            );
                                             prefs.edit().putBoolean(id, false).apply();
                                         }
                                     }
@@ -190,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
                 timerRunnable = new Runnable() {
                     @Override
                     public void run() {
-                        long nowSec = System.currentTimeMillis() / 1000;
+                        long nowSec = System.currentTimeMillis() / 1000L;
                         for (MachineItem item : machineList) {
                             if ("RUNNING".equalsIgnoreCase(item.state)
                                     && item.epochStart != null) {
@@ -201,8 +234,8 @@ public class MainActivity extends AppCompatActivity {
                         timerHandler.postDelayed(this, 1000);
                     }
                 };
-                timerHandler.post(timerRunnable);
 
+                timerHandler.post(timerRunnable);
                 staleHandler.post(staleCheckRunnable);
             }
 
@@ -213,7 +246,23 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_logout) {
+            FcmTokenHelper.clearCurrentUserToken();
+            authManager.signOut();
+            Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
+            redirectToLogin();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
     @Override
     protected void onDestroy() {
@@ -252,5 +301,12 @@ public class MainActivity extends AppCompatActivity {
                         .setAutoCancel(true);
 
         nm.notify((int) System.currentTimeMillis(), builder.build());
+    }
+
+    private void redirectToLogin() {
+        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 }

@@ -12,11 +12,11 @@ public class MachineItem {
     public long elapsedSeconds = 0L;
     public long lastUpdatedAt;
 
-    public String buildingCode  = ""; // NEW FIELD
+    public String buildingCode = "";
 
-    public MachineItem() {}
+    public MachineItem() {
+    }
 
-    // BACKWARD COMPATIBLE CONSTRUCTOR
     public MachineItem(String machineID, String machineName,
                        String state, long epoch, String timestamp) {
 
@@ -27,7 +27,6 @@ public class MachineItem {
         this.timestamp = timestamp != null ? timestamp : "";
     }
 
-    // FULL CONSTRUCTOR
     public MachineItem(String machineID, String machineName,
                        String state, long epoch, String timestamp,
                        double price, String buildingName) {
@@ -38,6 +37,6 @@ public class MachineItem {
         this.epochStart = epoch;
         this.timestamp = timestamp != null ? timestamp : "";
         this.price = price;
-        this.buildingCode  = buildingName != null ? buildingName : "";
+        this.buildingCode = buildingName != null ? buildingName : "";
     }
 }

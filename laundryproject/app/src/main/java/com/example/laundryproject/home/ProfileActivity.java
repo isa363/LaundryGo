@@ -27,6 +27,7 @@ public class ProfileActivity extends AppCompatActivity
     private MaterialToolbar profileToolbar;
     private Button closedTicketsBtn;
     private Button logoutBtn;
+    private Button btnInsights;
     private EditText editUsername;
     private TextView viewEmail;
     private TextView apt;
@@ -128,6 +129,7 @@ public class ProfileActivity extends AppCompatActivity
         submitTicketBtn = findViewById(R.id.submitTicketBtn);
         myTicketsBtn = findViewById(R.id.myTicketsBtn);
         closedTicketsBtn = findViewById(R.id.closedTicketsBtn);
+        btnInsights = findViewById(R.id.btnInsights);
 
         emailRow = findViewById(R.id.emailRow);
         passwordRow = findViewById(R.id.passwordRow);
@@ -196,6 +198,11 @@ public class ProfileActivity extends AppCompatActivity
 
         myTicketsBtn.setOnClickListener(v -> {
             Intent intent = new Intent(ProfileActivity.this, MyTicketsActivity.class);
+            startActivity(intent);
+        });
+
+        btnInsights.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, CostTrackingActivity.class);
             startActivity(intent);
         });
 

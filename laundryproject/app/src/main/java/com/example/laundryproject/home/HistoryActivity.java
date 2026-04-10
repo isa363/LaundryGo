@@ -23,7 +23,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -80,6 +79,10 @@ public class HistoryActivity extends AppCompatActivity {
         }
     }
 
+    private void setupBottomNav() {
+        BottomNavHelper.setup(this, R.id.bottomNav, R.id.nav_history);
+    }
+
     private void loadCurrentUserAndHistory() {
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
 
@@ -110,9 +113,6 @@ public class HistoryActivity extends AppCompatActivity {
             }
         });
     }
-    private void setupBottomNav() {
-        BottomNavHelper.setup(this, R.id.bottomNav, R.id.nav_history);
-    }
 
     private void loadHistoryForBuilding(String buildingCode) {
         FirebaseDatabase.getInstance()
@@ -136,18 +136,22 @@ public class HistoryActivity extends AppCompatActivity {
                                 machineName = machineId != null ? machineId : "Unknown Machine";
                             }
 
+                            Double machinePrice = machine.child("price").getValue(Double.class);
+
                             DataSnapshot historySnapshot = machine.child("history");
                             for (DataSnapshot entry : historySnapshot.getChildren()) {
                                 Long epoch = entry.child("epoch").getValue(Long.class);
                                 Double duration = entry.child("durationMin").getValue(Double.class);
-                                Double cost = entry.child("costUSD").getValue(Double.class);
+                                Double storedCost = entry.child("costUSD").getValue(Double.class);
 
                                 if (epoch == null) {
                                     continue;
                                 }
 
                                 double safeDuration = duration != null ? duration : 0.0;
-                                double safeCost = cost != null ? cost : 0.0;
+                                double safeCost = storedCost != null
+                                        ? storedCost
+                                        : (machinePrice != null ? machinePrice : 0.0);
 
                                 historyList.add(new HistoryItem(machineName, epoch, safeDuration, safeCost));
                                 totalSpent += safeCost;
