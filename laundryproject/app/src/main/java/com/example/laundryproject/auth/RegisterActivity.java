@@ -240,16 +240,6 @@ public class RegisterActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess() {
 
-                        if (accountType.equals("Admin")) {
-                            Toast.makeText(RegisterActivity.this,
-                                    "Admin registration successful.",
-                                    Toast.LENGTH_LONG).show();
-
-                            authManager.signOut();
-                            startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
-                            finish();
-                            return;
-                        }
 
                         firebaseUser.sendEmailVerification()
                                 .addOnCompleteListener(task -> {
