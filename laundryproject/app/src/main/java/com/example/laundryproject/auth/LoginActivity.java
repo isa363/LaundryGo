@@ -10,6 +10,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.laundryproject.R;
+import com.example.laundryproject.FcmTokenHelper;
 import com.example.laundryproject.data.UserRepository;
 import com.example.laundryproject.home.AdminActivity;
 import com.example.laundryproject.home.HomeActivity;
@@ -138,6 +139,8 @@ public class LoginActivity extends AppCompatActivity {
                     } else {
                         intent = new Intent(LoginActivity.this, HomeActivity.class);
                     }
+
+                    FcmTokenHelper.syncCurrentUserToken();
 
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
