@@ -1,5 +1,9 @@
 package com.example.laundryproject.home;
 
+import static com.example.laundryproject.home.UsageInsightCalculator.TIME_ALL;
+import static com.example.laundryproject.home.UsageInsightCalculator.TIME_MONTH;
+import static com.example.laundryproject.home.UsageInsightCalculator.TIME_WEEK;
+
 import com.google.firebase.database.DataSnapshot;
 
 import java.util.Calendar;
@@ -10,6 +14,8 @@ import java.util.TreeMap;
 public final class AdminAnalyticsCalculator {
 
     private AdminAnalyticsCalculator() {}
+
+
 
     public static class Result {
         public int[][] dayHourCounts = new int[7][24];
@@ -27,7 +33,7 @@ public final class AdminAnalyticsCalculator {
         public int activeMachineCount = 0;
     }
 
-    public static Result fromSnapshot(DataSnapshot snapshot, String adminBuilding) {
+    public static Result fromSnapshot(DataSnapshot snapshot, String adminBuilding, String timeFilter){
         Result result = new Result();
         Map<String, Integer> machineCycleCounts = new TreeMap<>();
 
@@ -69,6 +75,7 @@ public final class AdminAnalyticsCalculator {
                 if (epoch == null) {
                     continue;
                 }
+                if (!matchesTimeFilter(epoch, timeFilter)) continue;
 
                 Double costUSD = entry.child("costUSD").getValue(Double.class);
                 double cost = costUSD != null ? costUSD : machinePrice;
@@ -139,6 +146,25 @@ public final class AdminAnalyticsCalculator {
         result.topMachineName = bestMachine;
         result.topMachineCycles = maxCycles;
     }
+    private static boolean matchesTimeFilter(long epochSeconds, String timeFilter) {
+        if (TIME_ALL.equals(timeFilter)) return true;
+
+        Calendar now = Calendar.getInstance();
+        Calendar start = (Calendar) now.clone();
+
+        if (TIME_WEEK.equals(timeFilter)) {
+            start.set(Calendar.DAY_OF_WEEK, start.getFirstDayOfWeek());
+        } else if (TIME_MONTH.equals(timeFilter)) {
+            start.set(Calendar.DAY_OF_MONTH, 1);
+        }
+
+        start.set(Calendar.HOUR_OF_DAY, 0);
+        start.set(Calendar.MINUTE, 0);
+        start.set(Calendar.SECOND, 0);
+        start.set(Calendar.MILLISECOND, 0);
+
+        return epochSeconds >= start.getTimeInMillis() / 1000L;
+}
 
     public static String formatHourRange(int hour24) {
         if (hour24 < 0) return "—";

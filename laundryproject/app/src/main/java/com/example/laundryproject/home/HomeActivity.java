@@ -108,7 +108,7 @@ public class HomeActivity extends AppCompatActivity {
 
 
                                 UsageInsightCalculator.Result result =
-                                        UsageInsightCalculator.fromSnapshot(snapshot, buildingCode, UsageInsightCalculator.FILTER_ALL);
+                                        UsageInsightCalculator.fromSnapshot(snapshot, buildingCode, UsageInsightCalculator.FILTER_ALL, UsageInsightCalculator.TIME_WEEK);
 
                                 for (DataSnapshot machine : snapshot.getChildren()) {
                                     String machineBuilding = machine.child("buildingCode").getValue(String.class);

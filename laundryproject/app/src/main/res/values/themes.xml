@@ -8,6 +8,7 @@
         <item name="colorOnPrimary">#FFFFFF</item>
         <item name="colorSurfaceVariant">#F0F4F8</item>
         <item name="android:windowBackground">#F0F4F8</item>
+        <item name="android:statusBarColor">#1a56a0</item>
 
 
     </style>

@@ -39,6 +39,10 @@ public class UsageInsightsActivity extends AppCompatActivity {
 
     private String currentFilter = UsageInsightCalculator.FILTER_ALL;
     private String currentBuildingCode;
+    private String currentTimeFilter = UsageInsightCalculator.TIME_WEEK;
+    private MaterialButton btnTimeWeek;
+    private MaterialButton btnTimeMonth;
+    private MaterialButton btnTimeAll;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +54,9 @@ public class UsageInsightsActivity extends AppCompatActivity {
         setupToolbar();
         bindViews();
         setupFilterButtons();
+        setupTimeFilterButtons();
         loadCurrentUserAndInsights();
+
         setupBottomNav();
     }
 
@@ -59,7 +65,7 @@ public class UsageInsightsActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
             getSupportActionBar().setTitle("Usage Insights");
         }
     }
@@ -76,6 +82,9 @@ public class UsageInsightsActivity extends AppCompatActivity {
 
         heatmapView = findViewById(R.id.usageHeatmapView);
         hourlyChartView = findViewById(R.id.hourlyUsageChartView);
+        btnTimeWeek  = findViewById(R.id.btnTimeWeek);
+        btnTimeMonth = findViewById(R.id.btnTimeMonth);
+        btnTimeAll   = findViewById(R.id.btnTimeAll);
     }
 
     private void setupFilterButtons() {
@@ -153,7 +162,7 @@ public class UsageInsightsActivity extends AppCompatActivity {
                     @Override
                     public void onDataChange(DataSnapshot snapshot) {
                         UsageInsightCalculator.Result result =
-                                UsageInsightCalculator.fromSnapshot(snapshot, buildingCode, currentFilter);
+                                UsageInsightCalculator.fromSnapshot(snapshot, buildingCode, currentFilter, currentTimeFilter);
 
                         if (result.totalSessions > 0) {
                             tvSubtitle.setText("Based on " + result.totalSessions + " recorded sessions");
@@ -198,5 +207,26 @@ public class UsageInsightsActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void setupTimeFilterButtons() {
+        btnTimeWeek.setOnClickListener(v -> setTimeFilter(UsageInsightCalculator.TIME_WEEK));
+        btnTimeMonth.setOnClickListener(v -> setTimeFilter(UsageInsightCalculator.TIME_MONTH));
+        btnTimeAll.setOnClickListener(v -> setTimeFilter(UsageInsightCalculator.TIME_ALL));
+        updateTimeFilterButtons();
+    }
+
+    private void setTimeFilter(String timeFilter) {
+        currentTimeFilter = timeFilter;
+        updateTimeFilterButtons();
+        if (currentBuildingCode != null && !currentBuildingCode.trim().isEmpty()) {
+            observeInsights(currentBuildingCode);
+        }
+    }
+
+    private void updateTimeFilterButtons() {
+        styleFilterButton(btnTimeWeek, UsageInsightCalculator.TIME_WEEK.equals(currentTimeFilter));
+        styleFilterButton(btnTimeMonth, UsageInsightCalculator.TIME_MONTH.equals(currentTimeFilter));
+        styleFilterButton(btnTimeAll, UsageInsightCalculator.TIME_ALL.equals(currentTimeFilter));
     }
 }

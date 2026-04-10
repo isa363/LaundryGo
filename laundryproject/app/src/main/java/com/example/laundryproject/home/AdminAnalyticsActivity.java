@@ -14,6 +14,7 @@ import com.example.laundryproject.home.views.HourlyUsageChartView;
 import com.example.laundryproject.home.views.UsageHeatmapView;
 import com.example.laundryproject.model.User;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.button.MaterialButton;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
@@ -37,7 +38,11 @@ public class AdminAnalyticsActivity extends AppCompatActivity {
     private final UserRepository userRepository = new UserRepository();
 
     private String adminBuilding;
+    private String currentTimeFilter = UsageInsightCalculator.TIME_WEEK;
 
+    private MaterialButton btnTimeWeek;
+    private MaterialButton btnTimeMonth;
+    private MaterialButton btnTimeAll;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,6 +50,7 @@ public class AdminAnalyticsActivity extends AppCompatActivity {
 
         setupToolbar();
         bindViews();
+        setupTimeFilterButtons();
         loadAdminBuildingAndAnalytics();
     }
 
@@ -68,6 +74,9 @@ public class AdminAnalyticsActivity extends AppCompatActivity {
 
         heatmapView = findViewById(R.id.adminUsageHeatmapView);
         hourlyChartView = findViewById(R.id.adminHourlyUsageChartView);
+        btnTimeWeek  = findViewById(R.id.btnTimeWeek);
+        btnTimeMonth = findViewById(R.id.btnTimeMonth);
+        btnTimeAll   = findViewById(R.id.btnTimeAll);
     }
 
     private void loadAdminBuildingAndAnalytics() {
@@ -104,7 +113,7 @@ public class AdminAnalyticsActivity extends AppCompatActivity {
                     @Override
                     public void onDataChange(DataSnapshot snapshot) {
                         AdminAnalyticsCalculator.Result result =
-                                AdminAnalyticsCalculator.fromSnapshot(snapshot, adminBuilding);
+                                AdminAnalyticsCalculator.fromSnapshot(snapshot, adminBuilding, currentTimeFilter);
 
                         if (result.totalCycles > 0) {
                             tvSubtitle.setText("Overview for building " + adminBuilding);
@@ -151,5 +160,36 @@ public class AdminAnalyticsActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+    private void setupTimeFilterButtons() {
+        btnTimeWeek.setOnClickListener(v -> setTimeFilter(UsageInsightCalculator.TIME_WEEK));
+        btnTimeMonth.setOnClickListener(v -> setTimeFilter(UsageInsightCalculator.TIME_MONTH));
+        btnTimeAll.setOnClickListener(v -> setTimeFilter(UsageInsightCalculator.TIME_ALL));
+        updateTimeFilterButtons();
+    }
+
+    private void setTimeFilter(String timeFilter) {
+        currentTimeFilter = timeFilter;
+        updateTimeFilterButtons();
+        observeAnalytics();
+    }
+
+    private void updateTimeFilterButtons() {
+        styleButton(btnTimeWeek, UsageInsightCalculator.TIME_WEEK.equals(currentTimeFilter));
+        styleButton(btnTimeMonth, UsageInsightCalculator.TIME_MONTH.equals(currentTimeFilter));
+        styleButton(btnTimeAll, UsageInsightCalculator.TIME_ALL.equals(currentTimeFilter));
+    }
+
+    private void styleButton(MaterialButton button, boolean selected) {
+        if (selected) {
+            button.setBackgroundTintList(getColorStateList(R.color.insight_chip_selected_bg));
+            button.setTextColor(getColor(R.color.insight_chip_selected_text));
+            button.setStrokeWidth(0);
+        } else {
+            button.setBackgroundTintList(getColorStateList(R.color.insight_chip_bg));
+            button.setTextColor(getColor(R.color.insight_chip_text));
+            button.setStrokeWidth(2);
+            button.setStrokeColor(getColorStateList(R.color.insight_chip_stroke));
+        }
     }
 }

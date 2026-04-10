@@ -8,6 +8,9 @@ import java.util.Locale;
 public final class UsageInsightCalculator {
 
     public static final String FILTER_ALL = "ALL";
+    public static final String TIME_ALL = "ALL";
+    public static final String TIME_WEEK = "WEEK";
+    public static final String TIME_MONTH = "MONTH";
     public static final String FILTER_WASHERS = "WASHERS";
     public static final String FILTER_DRYERS = "DRYERS";
 
@@ -37,7 +40,7 @@ public final class UsageInsightCalculator {
         }
     }
 
-    public static Result fromSnapshot(DataSnapshot snapshot, String buildingCode, String filter) {
+    public static Result fromSnapshot(DataSnapshot snapshot, String buildingCode, String machineFilter, String timeFilter) {
         Result result = new Result();
 
         for (DataSnapshot machine : snapshot.getChildren()) {
@@ -48,7 +51,7 @@ public final class UsageInsightCalculator {
             }
 
             String machineType = resolveMachineType(machine);
-            if (!matchesFilter(machineType, filter)) {
+            if (!matchesFilter(machineType, machineFilter)) {
                 continue;
             }
 
@@ -58,8 +61,8 @@ public final class UsageInsightCalculator {
                 Long epoch = entry.child("epoch").getValue(Long.class);
                 if (epoch == null) continue;
 
-                // 🔥 YOUR WEEK FILTER (correctly placed now)
-                if (!isThisWeek(epoch)) continue;
+
+                if (!matchesTimeFilter(epoch, timeFilter)) continue;
 
                 Calendar calendar = Calendar.getInstance();
                 calendar.setTimeInMillis(epoch * 1000L);
@@ -99,6 +102,26 @@ public final class UsageInsightCalculator {
                 }
             }
         }
+    }
+
+    private static boolean matchesTimeFilter(long epochSeconds, String timeFilter) {
+        if (TIME_ALL.equals(timeFilter)) return true;
+
+        Calendar now = Calendar.getInstance();
+        Calendar start = (Calendar) now.clone();
+
+        if (TIME_WEEK.equals(timeFilter)) {
+            start.set(Calendar.DAY_OF_WEEK, start.getFirstDayOfWeek());
+        } else if (TIME_MONTH.equals(timeFilter)) {
+            start.set(Calendar.DAY_OF_MONTH, 1);
+        }
+
+        start.set(Calendar.HOUR_OF_DAY, 0);
+        start.set(Calendar.MINUTE, 0);
+        start.set(Calendar.SECOND, 0);
+        start.set(Calendar.MILLISECOND, 0);
+
+        return epochSeconds >= start.getTimeInMillis() / 1000L;
     }
 
     private static void computeHourlyAverages(Result result) {
@@ -157,18 +180,5 @@ public final class UsageInsightCalculator {
         return displayHour + " " + suffix;
     }
 
-    private static boolean isThisWeek(long epochSeconds) {
-        Calendar now = Calendar.getInstance();
 
-        Calendar startOfWeek = (Calendar) now.clone();
-        startOfWeek.set(Calendar.DAY_OF_WEEK, startOfWeek.getFirstDayOfWeek());
-        startOfWeek.set(Calendar.HOUR_OF_DAY, 0);
-        startOfWeek.set(Calendar.MINUTE, 0);
-        startOfWeek.set(Calendar.SECOND, 0);
-        startOfWeek.set(Calendar.MILLISECOND, 0);
-
-        long startEpoch = startOfWeek.getTimeInMillis() / 1000;
-
-        return epochSeconds >= startEpoch;
-    }
 }
