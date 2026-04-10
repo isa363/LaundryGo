@@ -121,7 +121,7 @@
         <activity
             android:name=".home.ProfileActivity"
             android:exported="false"
-            android:parentActivityName=".home.MainActivity">
+            >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".home.MainActivity" />

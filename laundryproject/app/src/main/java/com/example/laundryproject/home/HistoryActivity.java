@@ -54,7 +54,7 @@ public class HistoryActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
             getSupportActionBar().setTitle("Session History");
         }
     }

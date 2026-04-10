@@ -29,7 +29,7 @@ public class HomeActivity extends AppCompatActivity {
     private TextView tvWelcome;
     private TextView tvAvailableMachines;
     private TextView tvRunningMachines;
-    private TextView tvTotalSessions;
+
     private TextView tvPeakHour;
     private TextView tvLeastBusyHour;;
 
@@ -55,7 +55,7 @@ public class HomeActivity extends AppCompatActivity {
         tvWelcome = findViewById(R.id.tvWelcome);
         tvAvailableMachines = findViewById(R.id.tvAvailableMachines);
         tvRunningMachines = findViewById(R.id.tvRunningMachines);
-        tvTotalSessions = findViewById(R.id.tvTotalSessions);
+
         tvPeakHour = findViewById(R.id.tvPeakHour);
         tvLeastBusyHour = findViewById(R.id.tvLeastBusyHour);
 
@@ -105,7 +105,7 @@ public class HomeActivity extends AppCompatActivity {
                             public void onDataChange(DataSnapshot snapshot) {
                                 int available = 0;
                                 int running = 0;
-                                int totalSessions = 0;
+
 
                                 UsageInsightCalculator.Result result =
                                         UsageInsightCalculator.fromSnapshot(snapshot, buildingCode, UsageInsightCalculator.FILTER_ALL);
@@ -126,11 +126,11 @@ public class HomeActivity extends AppCompatActivity {
                                     }
                                 }
 
-                                totalSessions = result.totalSessions;
+
 
                                 tvAvailableMachines.setText(String.valueOf(available));
                                 tvRunningMachines.setText(String.valueOf(running));
-                                tvTotalSessions.setText(String.valueOf(totalSessions));
+
                                 tvPeakHour.setText(result.totalSessions > 0 ? result.getPeakLabel() : "—");
                                 tvLeastBusyHour.setText(result.totalSessions > 0 ? result.getQuietLabel() : "—");
                             }

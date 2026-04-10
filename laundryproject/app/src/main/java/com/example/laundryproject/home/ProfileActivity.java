@@ -56,7 +56,7 @@ public class ProfileActivity extends AppCompatActivity
         currentUser = authManager.getCurrentUser();
 
         initViews();
-        setupToolbar();
+        //setupToolbar();
         loadProfileData();
         setupListeners();
         setupBottomNav();
@@ -135,9 +135,7 @@ public class ProfileActivity extends AppCompatActivity
         passwordRow = findViewById(R.id.passwordRow);
     }
 
-    private void setupToolbar() {
-        profileToolbar.setNavigationOnClickListener(v -> finish());
-    }
+
 
     private void setupBottomNav() {
         BottomNavHelper.setup(this, R.id.bottomNav, R.id.nav_account);
