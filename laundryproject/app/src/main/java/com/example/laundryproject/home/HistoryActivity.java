@@ -34,7 +34,7 @@ public class HistoryActivity extends AppCompatActivity {
     private final List<HistoryItem> historyList = new ArrayList<>();
 
     private final UserRepository userRepository = new UserRepository();
-    private String currentBuildingCode;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,70 +92,30 @@ public class HistoryActivity extends AppCompatActivity {
             return;
         }
 
-        userRepository.getUser(firebaseUser.getUid(), new UserRepository.LoadUserCallback() {
-            @Override
-            public void onSuccess(User user) {
-                if (user == null || user.buildingCode == null || user.buildingCode.trim().isEmpty()) {
-                    Toast.makeText(HistoryActivity.this,
-                            "Could not determine your building.", Toast.LENGTH_SHORT).show();
-                    showEmptyState();
-                    return;
-                }
-
-                currentBuildingCode = user.buildingCode.trim();
-                loadHistoryForBuilding(currentBuildingCode);
-            }
-
-            @Override
-            public void onFailure(String errorMessage) {
-                Toast.makeText(HistoryActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
-                showEmptyState();
-            }
-        });
-    }
-
-    private void loadHistoryForBuilding(String buildingCode) {
         FirebaseDatabase.getInstance()
-                .getReference("machines")
+                .getReference("users")
+                .child(firebaseUser.getUid())
+                .child("history")
                 .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot snapshot) {
                         historyList.clear();
                         double totalSpent = 0.0;
 
-                        for (DataSnapshot machine : snapshot.getChildren()) {
-                            String machineBuilding = machine.child("buildingCode").getValue(String.class);
-                            if (machineBuilding == null || !machineBuilding.equals(buildingCode)) {
-                                continue;
-                            }
+                        for (DataSnapshot entry : snapshot.getChildren()) {
+                            Long epoch      = entry.child("epoch").getValue(Long.class);
+                            Double duration = entry.child("durationMin").getValue(Double.class);
+                            Double cost     = entry.child("costUSD").getValue(Double.class);
+                            String mName    = entry.child("machineName").getValue(String.class);
 
-                            String machineId = machine.getKey();
-                            String machineName = machine.child("machineName").getValue(String.class);
+                            if (epoch == null) continue;
 
-                            if (machineName == null || machineName.trim().isEmpty()) {
-                                machineName = machineId != null ? machineId : "Unknown Machine";
-                            }
+                            double safeDuration = duration != null ? duration : 0.0;
+                            double safeCost     = cost != null ? cost : 0.0;
+                            String safeName     = (mName != null && !mName.isEmpty()) ? mName : "Machine";
 
-                            Double machinePrice = machine.child("price").getValue(Double.class);
-
-                            DataSnapshot historySnapshot = machine.child("history");
-                            for (DataSnapshot entry : historySnapshot.getChildren()) {
-                                Long epoch = entry.child("epoch").getValue(Long.class);
-                                Double duration = entry.child("durationMin").getValue(Double.class);
-                                Double storedCost = entry.child("costUSD").getValue(Double.class);
-
-                                if (epoch == null) {
-                                    continue;
-                                }
-
-                                double safeDuration = duration != null ? duration : 0.0;
-                                double safeCost = storedCost != null
-                                        ? storedCost
-                                        : (machinePrice != null ? machinePrice : 0.0);
-
-                                historyList.add(new HistoryItem(machineName, epoch, safeDuration, safeCost));
-                                totalSpent += safeCost;
-                            }
+                            historyList.add(new HistoryItem(safeName, epoch, safeDuration, safeCost));
+                            totalSpent += safeCost;
                         }
 
                         historyList.sort((a, b) -> Long.compare(b.getEpoch(), a.getEpoch()));
@@ -173,6 +133,7 @@ public class HistoryActivity extends AppCompatActivity {
                     }
                 });
     }
+
 
     private void showEmptyState() {
         historyList.clear();

@@ -30,6 +30,9 @@ import java.util.Map;
 
 public class MachineDetailActivity extends AppCompatActivity {
 
+    private String previousState = null;
+    private boolean sessionLinked = false;
+
     private String machineId;
     private String machineName;
     private long epochStart = 0L;
@@ -104,6 +107,7 @@ public class MachineDetailActivity extends AppCompatActivity {
 
         btnStartMachine.setOnClickListener(v -> {
             writeCurrentSessionForMachine(new SessionWriteCallback() {
+
                 @Override
                 public void onSuccess() {
                     Toast.makeText(
@@ -113,6 +117,7 @@ public class MachineDetailActivity extends AppCompatActivity {
                     ).show();
                     btnStartMachine.setEnabled(false);
                     btnStartMachine.setText("Session Linked");
+                    sessionLinked = true;
                 }
 
                 @Override
@@ -153,6 +158,12 @@ public class MachineDetailActivity extends AppCompatActivity {
                             if (state == null) state = "DISCONNECTED";
                             if (epoch != null) epochStart = epoch;
                             if (price != null) machinePrice = price;
+
+                            if ("RUNNING".equalsIgnoreCase(previousState) && "AVAILABLE".equalsIgnoreCase(state)) {
+                                onMachineFinished();
+                            }
+
+                            previousState = state;
 
                             updateUI(state, timestamp, lastCost);
                         } catch (Exception e) {
@@ -212,6 +223,72 @@ public class MachineDetailActivity extends AppCompatActivity {
                 callback.onFailure(errorMessage);
             }
         });
+    }
+
+    private void onMachineFinished() {
+        if (!sessionLinked) return;
+
+        FirebaseUser currentUser = authManager.getCurrentUser();
+        if (currentUser == null) return;
+
+        long now = System.currentTimeMillis() / 1000L;
+        double cost = machinePrice > 0 ? machinePrice : 2.50;
+
+        // Read the startEpoch from the currentSession node to compute duration
+        FirebaseDatabase.getInstance()
+                .getReference("machines")
+                .child(machineId)
+                .child("currentSession")
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    Long startEpoch = snapshot.child("startEpoch").getValue(Long.class);
+                    String buildingCode = snapshot.child("buildingCode").getValue(String.class);
+
+                    long safeStart = (startEpoch != null && startEpoch > 0) ? startEpoch : now;
+                    double durationMin = (now - safeStart) / 60.0;
+
+                    // 1. Write to machines/{id}/history — building aggregate (insights, admin)
+                    Map<String, Object> machineEntry = new HashMap<>();
+                    machineEntry.put("uid", currentUser.getUid());
+                    machineEntry.put("buildingCode", buildingCode);
+                    machineEntry.put("machineId", machineId);
+                    machineEntry.put("machineName", machineName);
+                    machineEntry.put("epoch", safeStart);
+                    machineEntry.put("durationMin", durationMin);
+                    machineEntry.put("costUSD", cost);
+
+                    FirebaseDatabase.getInstance()
+                            .getReference("machines")
+                            .child(machineId)
+                            .child("history")
+                            .push()
+                            .setValue(machineEntry);
+
+                    // 2. Write to users/{uid}/history — personal only (HistoryActivity)
+                    Map<String, Object> userEntry = new HashMap<>();
+                    userEntry.put("machineId", machineId);
+                    userEntry.put("machineName", machineName);
+                    userEntry.put("buildingCode", buildingCode);
+                    userEntry.put("epoch", safeStart);
+                    userEntry.put("durationMin", durationMin);
+                    userEntry.put("costUSD", cost);
+
+                    FirebaseDatabase.getInstance()
+                            .getReference("users")
+                            .child(currentUser.getUid())
+                            .child("history")
+                            .push()
+                            .setValue(userEntry);
+
+                    // 3. Clean up currentSession
+                    FirebaseDatabase.getInstance()
+                            .getReference("machines")
+                            .child(machineId)
+                            .child("currentSession")
+                            .removeValue();
+
+                    sessionLinked = false;
+                });
     }
 
     private void updateUI(String state, String timestamp, Double lastCost) {
