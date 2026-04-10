@@ -41,6 +41,7 @@ public final class UsageInsightCalculator {
         Result result = new Result();
 
         for (DataSnapshot machine : snapshot.getChildren()) {
+
             String machineBuilding = machine.child("buildingCode").getValue(String.class);
             if (machineBuilding == null || !machineBuilding.equals(buildingCode)) {
                 continue;
@@ -52,9 +53,13 @@ public final class UsageInsightCalculator {
             }
 
             DataSnapshot historyNode = machine.child("history");
+
             for (DataSnapshot entry : historyNode.getChildren()) {
                 Long epoch = entry.child("epoch").getValue(Long.class);
                 if (epoch == null) continue;
+
+                // 🔥 YOUR WEEK FILTER (correctly placed now)
+                if (!isThisWeek(epoch)) continue;
 
                 Calendar calendar = Calendar.getInstance();
                 calendar.setTimeInMillis(epoch * 1000L);
@@ -150,5 +155,20 @@ public final class UsageInsightCalculator {
         int displayHour = hour24 % 12 == 0 ? 12 : hour24 % 12;
         String suffix = hour24 < 12 ? "AM" : "PM";
         return displayHour + " " + suffix;
+    }
+
+    private static boolean isThisWeek(long epochSeconds) {
+        Calendar now = Calendar.getInstance();
+
+        Calendar startOfWeek = (Calendar) now.clone();
+        startOfWeek.set(Calendar.DAY_OF_WEEK, startOfWeek.getFirstDayOfWeek());
+        startOfWeek.set(Calendar.HOUR_OF_DAY, 0);
+        startOfWeek.set(Calendar.MINUTE, 0);
+        startOfWeek.set(Calendar.SECOND, 0);
+        startOfWeek.set(Calendar.MILLISECOND, 0);
+
+        long startEpoch = startOfWeek.getTimeInMillis() / 1000;
+
+        return epochSeconds >= startEpoch;
     }
 }
